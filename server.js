@@ -2,11 +2,12 @@ const express = require('express');
 const cors = require('cors');
 const dotenv = require('dotenv');
 const path = require('path');
-const { sequelize } = require('./models');
-const { ensureDatabaseExists } = require('./config/database');
 
 // Load environment variables
 dotenv.config({ path: path.join(__dirname, '.env') });
+
+const { sequelize } = require('./models');
+const { ensureDatabaseExists } = require('./config/database');
 
 const app = express();
 
