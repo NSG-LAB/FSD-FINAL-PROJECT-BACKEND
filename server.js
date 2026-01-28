@@ -3,6 +3,7 @@ const cors = require('cors');
 const dotenv = require('dotenv');
 const path = require('path');
 const { sequelize } = require('./models');
+const { ensureDatabaseExists } = require('./config/database');
 
 // Load environment variables
 dotenv.config({ path: path.join(__dirname, '.env') });
@@ -19,6 +20,8 @@ let isDatabaseConnected = false;
 const connectDatabase = async () => {
   try {
     console.log('🔗 Attempting to connect to MySQL...');
+    await ensureDatabaseExists();
+    console.log('📚 Database ensured');
     await sequelize.authenticate();
     console.log('✅ MySQL connection established');
     await sequelize.sync();

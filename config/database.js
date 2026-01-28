@@ -1,27 +1,56 @@
+const { URL } = require('url');
 const { Sequelize } = require('sequelize');
+const mysql = require('mysql2/promise');
 
-const createSequelizeInstance = () => {
+const getConnectionConfig = () => {
+  const logging = process.env.NODE_ENV === 'development' ? console.log : false;
+
   if (process.env.MYSQL_URI) {
-    return new Sequelize(process.env.MYSQL_URI, {
-      dialect: 'mysql',
-      logging: process.env.NODE_ENV === 'development' ? console.log : false
-    });
+    const url = new URL(process.env.MYSQL_URI);
+    return {
+      database: url.pathname.replace('/', '') || 'property_app',
+      username: decodeURIComponent(url.username || 'root'),
+      password: decodeURIComponent(url.password || ''),
+      host: url.hostname || 'localhost',
+      port: url.port ? parseInt(url.port, 10) : 3306,
+      logging
+    };
   }
 
-  const database = process.env.MYSQL_DB || 'property_app';
-  const username = process.env.MYSQL_USER || 'root';
-  const password = process.env.MYSQL_PASSWORD || '';
-  const host = process.env.MYSQL_HOST || 'localhost';
-  const port = process.env.MYSQL_PORT ? parseInt(process.env.MYSQL_PORT, 10) : 3306;
+  return {
+    database: process.env.MYSQL_DB || 'property_app',
+    username: process.env.MYSQL_USER || 'root',
+    password: process.env.MYSQL_PASSWORD || '',
+    host: process.env.MYSQL_HOST || 'localhost',
+    port: process.env.MYSQL_PORT ? parseInt(process.env.MYSQL_PORT, 10) : 3306,
+    logging
+  };
+};
 
-  return new Sequelize(database, username, password, {
-    host,
-    port,
+const createSequelizeInstance = () => {
+  const config = getConnectionConfig();
+
+  return new Sequelize(config.database, config.username, config.password, {
+    host: config.host,
+    port: config.port,
     dialect: 'mysql',
-    logging: process.env.NODE_ENV === 'development' ? console.log : false
+    logging: config.logging
   });
+};
+
+const ensureDatabaseExists = async () => {
+  const config = getConnectionConfig();
+  const connection = await mysql.createConnection({
+    host: config.host,
+    port: config.port,
+    user: config.username,
+    password: config.password
+  });
+
+  await connection.query(`CREATE DATABASE IF NOT EXISTS \`${config.database}\` CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;`);
+  await connection.end();
 };
 
 const sequelize = createSequelizeInstance();
 
-module.exports = { sequelize };
+module.exports = { sequelize, ensureDatabaseExists };
