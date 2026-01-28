@@ -1,14 +1,18 @@
-const mongoose = require('mongoose');
+const { DataTypes } = require('sequelize');
+const { sequelize } = require('../config/database');
 
-const recommendationSchema = new mongoose.Schema({
+const Recommendation = sequelize.define('Recommendation', {
+  id: {
+    type: DataTypes.UUID,
+    defaultValue: DataTypes.UUIDV4,
+    primaryKey: true
+  },
   title: {
-    type: String,
-    required: true,
-    trim: true
+    type: DataTypes.STRING,
+    allowNull: false
   },
   category: {
-    type: String,
-    enum: [
+    type: DataTypes.ENUM(
       'kitchen-bathroom',
       'flooring',
       'wall-paint',
@@ -18,78 +22,83 @@ const recommendationSchema = new mongoose.Schema({
       'energy-efficiency',
       'interior-design',
       'electrical-plumbing'
-    ],
-    required: true
+    ),
+    allowNull: false
   },
   description: {
-    type: String,
-    required: true
+    type: DataTypes.TEXT,
+    allowNull: false
   },
-  benefits: [String],
+  benefits: {
+    type: DataTypes.JSON,
+    allowNull: false,
+    defaultValue: () => []
+  },
   estimatedCost: {
-    min: Number,
-    max: Number
+    type: DataTypes.JSON,
+    allowNull: false,
+    defaultValue: () => ({ min: 0, max: 0 })
   },
   expectedROI: {
-    type: Number,
-    default: 0
+    type: DataTypes.DECIMAL(10, 2),
+    defaultValue: 0
   },
   roiPercentage: {
-    type: Number,
-    default: 0
+    type: DataTypes.FLOAT,
+    defaultValue: 0
   },
   difficulty: {
-    type: String,
-    enum: ['easy', 'moderate', 'difficult'],
-    default: 'moderate'
+    type: DataTypes.ENUM('easy', 'moderate', 'difficult'),
+    defaultValue: 'moderate'
   },
-  timeframe: String,
-  images: [String],
-  tips: [String],
-  applicablePropertyTypes: [
-    {
-      type: String,
-      enum: ['apartment', 'house', 'villa', 'townhouse', 'studio', 'all']
-    }
-  ],
-  applicableCities: [String],
-  applicableConditions: [
-    {
-      type: String,
-      enum: ['excellent', 'good', 'average', 'needs-work']
-    }
-  ],
-  beforeAfterImages: [
-    {
-      before: String,
-      after: String,
-      description: String
-    }
-  ],
-  relatedRecommendations: [{
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'Recommendation'
-  }],
+  timeframe: {
+    type: DataTypes.STRING,
+    allowNull: true
+  },
+  images: {
+    type: DataTypes.JSON,
+    allowNull: false,
+    defaultValue: () => []
+  },
+  tips: {
+    type: DataTypes.JSON,
+    allowNull: false,
+    defaultValue: () => []
+  },
+  applicablePropertyTypes: {
+    type: DataTypes.JSON,
+    allowNull: false,
+    defaultValue: () => []
+  },
+  applicableCities: {
+    type: DataTypes.JSON,
+    allowNull: false,
+    defaultValue: () => []
+  },
+  applicableConditions: {
+    type: DataTypes.JSON,
+    allowNull: false,
+    defaultValue: () => []
+  },
+  beforeAfterImages: {
+    type: DataTypes.JSON,
+    allowNull: false,
+    defaultValue: () => []
+  },
   priority: {
-    type: Number,
-    default: 0
+    type: DataTypes.INTEGER,
+    defaultValue: 0
   },
   isActive: {
-    type: Boolean,
-    default: true
+    type: DataTypes.BOOLEAN,
+    defaultValue: true
   },
   createdBy: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'User'
-  },
-  createdAt: {
-    type: Date,
-    default: Date.now
-  },
-  updatedAt: {
-    type: Date,
-    default: Date.now
+    type: DataTypes.UUID,
+    allowNull: true
   }
+}, {
+  timestamps: true
 });
 
-module.exports = mongoose.model('Recommendation', recommendationSchema);
+module.exports = Recommendation;

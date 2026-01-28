@@ -1,8 +1,22 @@
 const express = require('express');
 const jwt = require('jsonwebtoken');
-const User = require('../models/User');
+const { User } = require('../models');
 
 const router = express.Router();
+
+const buildToken = (user) =>
+  jwt.sign(
+    { userId: user.id, email: user.email, role: user.role },
+    process.env.JWT_SECRET,
+    { expiresIn: process.env.JWT_EXPIRE || '7d' }
+  );
+
+const toPublicUser = (userInstance) => {
+  if (!userInstance) return null;
+  const user = userInstance.get({ plain: true });
+  delete user.password;
+  return user;
+};
 
 // Register
 router.post('/register', async (req, res) => {
@@ -16,13 +30,12 @@ router.post('/register', async (req, res) => {
     }
 
     // Check if user exists
-    const existingUser = await User.findOne({ email });
+    const existingUser = await User.findOne({ where: { email } });
     if (existingUser) {
       return res.status(400).json({ success: false, message: 'Email already registered' });
     }
 
-    // Create new user
-    const user = new User({
+    const user = await User.create({
       firstName,
       lastName,
       email,
@@ -31,28 +44,13 @@ router.post('/register', async (req, res) => {
       state
     });
 
-    console.log('Saving user:', user);
-    await user.save();
-    console.log('User saved successfully:', user._id);
-
-    // Generate token
-    const token = jwt.sign(
-      { userId: user._id, email: user.email, role: user.role },
-      process.env.JWT_SECRET,
-      { expiresIn: process.env.JWT_EXPIRE || '7d' }
-    );
+    const token = buildToken(user);
 
     res.status(201).json({
       success: true,
       message: 'User registered successfully',
       token,
-      user: {
-        id: user._id,
-        firstName: user.firstName,
-        lastName: user.lastName,
-        email: user.email,
-        role: user.role
-      }
+      user: toPublicUser(user)
     });
   } catch (error) {
     console.error('Registration error:', error);
@@ -69,7 +67,7 @@ router.post('/login', async (req, res) => {
       return res.status(400).json({ success: false, message: 'Email and password are required' });
     }
 
-    const user = await User.findOne({ email }).select('+password');
+    const user = await User.scope('withPassword').findOne({ where: { email } });
     if (!user) {
       return res.status(401).json({ success: false, message: 'Invalid credentials' });
     }
@@ -79,23 +77,13 @@ router.post('/login', async (req, res) => {
       return res.status(401).json({ success: false, message: 'Invalid credentials' });
     }
 
-    const token = jwt.sign(
-      { userId: user._id, email: user.email, role: user.role },
-      process.env.JWT_SECRET,
-      { expiresIn: process.env.JWT_EXPIRE || '7d' }
-    );
+    const token = buildToken(user);
 
     res.json({
       success: true,
       message: 'Login successful',
       token,
-      user: {
-        id: user._id,
-        firstName: user.firstName,
-        lastName: user.lastName,
-        email: user.email,
-        role: user.role
-      }
+      user: toPublicUser(user)
     });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });

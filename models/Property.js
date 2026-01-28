@@ -1,118 +1,86 @@
-const mongoose = require('mongoose');
+const { DataTypes } = require('sequelize');
+const { sequelize } = require('../config/database');
 
-const propertySchema = new mongoose.Schema({
+const Property = sequelize.define('Property', {
+  id: {
+    type: DataTypes.UUID,
+    defaultValue: DataTypes.UUIDV4,
+    primaryKey: true
+  },
   userId: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'User',
-    required: true
+    type: DataTypes.UUID,
+    allowNull: false
   },
   title: {
-    type: String,
-    required: true,
-    trim: true
+    type: DataTypes.STRING,
+    allowNull: false
   },
   description: {
-    type: String,
-    trim: true
+    type: DataTypes.TEXT,
+    allowNull: true
   },
   propertyType: {
-    type: String,
-    enum: ['apartment', 'house', 'villa', 'townhouse', 'studio'],
-    required: true
+    type: DataTypes.ENUM('apartment', 'house', 'villa', 'townhouse', 'studio'),
+    allowNull: false
   },
   age: {
-    type: Number,
-    required: true
+    type: DataTypes.INTEGER,
+    allowNull: false
   },
   builUpArea: {
-    type: Number,
-    required: true
+    type: DataTypes.INTEGER,
+    allowNull: false
   },
   bedrooms: {
-    type: Number,
-    required: true
+    type: DataTypes.INTEGER,
+    allowNull: false
   },
   bathrooms: {
-    type: Number,
-    required: true
+    type: DataTypes.INTEGER,
+    allowNull: false
   },
   location: {
-    address: String,
-    city: {
-      type: String,
-      required: true
-    },
-    state: {
-      type: String,
-      required: true
-    },
-    pincode: String,
-    coordinates: {
-      latitude: Number,
-      longitude: Number
-    }
+    type: DataTypes.JSON,
+    allowNull: false,
+    defaultValue: () => ({})
   },
   condition: {
-    type: String,
-    enum: ['excellent', 'good', 'average', 'needs-work'],
-    required: true
+    type: DataTypes.ENUM('excellent', 'good', 'average', 'needs-work'),
+    allowNull: false
   },
   currentValue: {
-    type: Number,
-    required: true
+    type: DataTypes.DECIMAL(15, 2),
+    allowNull: false
   },
-  features: [
-    {
-      type: String,
-      enum: [
-        'garden',
-        'balcony',
-        'parking',
-        'lift',
-        'security',
-        'gym',
-        'pool',
-        'community-center',
-        'solar-panel',
-        'water-storage'
-      ]
-    }
-  ],
-  images: [String],
-  improvements: [
-    {
-      category: String,
-      description: String,
-      estimatedCost: Number,
-      potentialROI: Number,
-      completedDate: Date
-    }
-  ],
-  recommendations: [{
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'Recommendation'
-  }],
+  features: {
+    type: DataTypes.JSON,
+    allowNull: false,
+    defaultValue: () => []
+  },
+  images: {
+    type: DataTypes.JSON,
+    allowNull: false,
+    defaultValue: () => []
+  },
+  improvements: {
+    type: DataTypes.JSON,
+    allowNull: false,
+    defaultValue: () => []
+  },
   estimatedNewValue: {
-    type: Number,
-    default: 0
+    type: DataTypes.DECIMAL(15, 2),
+    defaultValue: 0
   },
   potentialValueIncrease: {
-    type: Number,
-    default: 0
+    type: DataTypes.DECIMAL(15, 2),
+    defaultValue: 0
   },
   status: {
-    type: String,
-    enum: ['pending', 'reviewed', 'recommended'],
-    default: 'pending'
-  },
-  createdAt: {
-    type: Date,
-    default: Date.now
-  },
-  updatedAt: {
-    type: Date,
-    default: Date.now
+    type: DataTypes.ENUM('pending', 'reviewed', 'recommended'),
+    defaultValue: 'pending'
   }
+}, {
+  timestamps: true
 });
 
-module.exports = mongoose.model('Property', propertySchema);
+module.exports = Property;

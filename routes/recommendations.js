@@ -1,21 +1,33 @@
 const express = require('express');
-const Recommendation = require('../models/Recommendation');
+const { Recommendation, Property } = require('../models');
 const { authenticateToken, authorizeAdmin } = require('../middleware/auth');
 
 const router = express.Router();
 
+const buildRelatedIds = (body) => {
+  if (Array.isArray(body.relatedRecommendationIds)) {
+    return body.relatedRecommendationIds;
+  }
+  if (Array.isArray(body.relatedRecommendations)) {
+    return body.relatedRecommendations;
+  }
+  return [];
+};
+
 // Get all recommendations
 router.get('/', async (req, res) => {
   try {
-    const { category, city, difficulty } = req.query;
-    let filter = { isActive: true };
+    const { category, difficulty } = req.query;
+    const whereClause = { isActive: true };
 
-    if (category) filter.category = category;
-    if (difficulty) filter.difficulty = difficulty;
+    if (category) whereClause.category = category;
+    if (difficulty) whereClause.difficulty = difficulty;
 
-    const recommendations = await Recommendation.find(filter)
-      .populate('relatedRecommendations')
-      .sort('-priority');
+    const recommendations = await Recommendation.findAll({
+      where: whereClause,
+      include: [{ association: 'relatedRecommendations', through: { attributes: [] } }],
+      order: [['priority', 'DESC']]
+    });
 
     res.json({ success: true, count: recommendations.length, recommendations });
   } catch (error) {
@@ -26,28 +38,35 @@ router.get('/', async (req, res) => {
 // Get recommendations for a property
 router.get('/property/:propertyId', async (req, res) => {
   try {
-    const Property = require('../models/Property');
-    const property = await Property.findById(req.params.propertyId);
+    const property = await Property.findByPk(req.params.propertyId);
 
     if (!property) {
       return res.status(404).json({ success: false, message: 'Property not found' });
     }
 
-    const filter = {
-      isActive: true,
-      $or: [
-        { applicablePropertyTypes: property.propertyType },
-        { applicablePropertyTypes: 'all' }
-      ],
-      $or: [
-        { applicableConditions: property.condition },
-        { applicableConditions: { $size: 0 } }
-      ]
-    };
+    const allRecommendations = await Recommendation.findAll({
+      where: { isActive: true },
+      order: [['priority', 'DESC']]
+    });
 
-    const recommendations = await Recommendation.find(filter).sort('-priority');
+    const filtered = allRecommendations.filter((recommendation) => {
+      const propertyTypeMatch =
+        !recommendation.applicablePropertyTypes.length ||
+        recommendation.applicablePropertyTypes.includes('all') ||
+        recommendation.applicablePropertyTypes.includes(property.propertyType);
 
-    res.json({ success: true, count: recommendations.length, recommendations });
+      const conditionMatch =
+        !recommendation.applicableConditions.length ||
+        recommendation.applicableConditions.includes(property.condition);
+
+      const cityMatch =
+        !recommendation.applicableCities.length ||
+        recommendation.applicableCities.includes(property.location?.city);
+
+      return propertyTypeMatch && conditionMatch && cityMatch;
+    });
+
+    res.json({ success: true, count: filtered.length, recommendations: filtered });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
   }
@@ -56,13 +75,23 @@ router.get('/property/:propertyId', async (req, res) => {
 // Create recommendation (Admin only)
 router.post('/', authenticateToken, authorizeAdmin, async (req, res) => {
   try {
-    const recommendationData = {
-      ...req.body,
-      createdBy: req.user.userId
-    };
+    const relatedIds = buildRelatedIds(req.body);
+    const {
+      relatedRecommendations,
+      relatedRecommendationIds,
+      ...payload
+    } = req.body;
 
-    const recommendation = new Recommendation(recommendationData);
-    await recommendation.save();
+    const recommendation = await Recommendation.create({
+      ...payload,
+      createdBy: req.user.userId
+    });
+
+    if (relatedIds.length) {
+      await recommendation.setRelatedRecommendations(relatedIds);
+    }
+
+    await recommendation.reload({ include: [{ association: 'relatedRecommendations', through: { attributes: [] } }] });
 
     res.status(201).json({
       success: true,
@@ -77,15 +106,30 @@ router.post('/', authenticateToken, authorizeAdmin, async (req, res) => {
 // Update recommendation (Admin only)
 router.put('/:id', authenticateToken, authorizeAdmin, async (req, res) => {
   try {
-    const recommendation = await Recommendation.findByIdAndUpdate(
-      req.params.id,
-      { ...req.body, updatedAt: Date.now() },
-      { new: true }
-    );
+    const recommendation = await Recommendation.findByPk(req.params.id, {
+      include: [{ association: 'relatedRecommendations', through: { attributes: [] } }]
+    });
 
     if (!recommendation) {
       return res.status(404).json({ success: false, message: 'Recommendation not found' });
     }
+
+    const relatedIds = buildRelatedIds(req.body);
+    const {
+      relatedRecommendations,
+      relatedRecommendationIds,
+      ...payload
+    } = req.body;
+
+    await recommendation.update({ ...payload });
+
+    if (relatedIds.length) {
+      await recommendation.setRelatedRecommendations(relatedIds);
+    } else if (req.body.relatedRecommendations || req.body.relatedRecommendationIds) {
+      await recommendation.setRelatedRecommendations([]);
+    }
+
+    await recommendation.reload({ include: [{ association: 'relatedRecommendations', through: { attributes: [] } }] });
 
     res.json({
       success: true,
@@ -100,11 +144,13 @@ router.put('/:id', authenticateToken, authorizeAdmin, async (req, res) => {
 // Delete recommendation (Admin only)
 router.delete('/:id', authenticateToken, authorizeAdmin, async (req, res) => {
   try {
-    const recommendation = await Recommendation.findByIdAndDelete(req.params.id);
+    const recommendation = await Recommendation.findByPk(req.params.id);
 
     if (!recommendation) {
       return res.status(404).json({ success: false, message: 'Recommendation not found' });
     }
+
+    await recommendation.destroy();
 
     res.json({ success: true, message: 'Recommendation deleted successfully' });
   } catch (error) {

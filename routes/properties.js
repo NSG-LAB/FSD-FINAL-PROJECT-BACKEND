@@ -1,5 +1,6 @@
 const express = require('express');
-const Property = require('../models/Property');
+const { Op } = require('sequelize');
+const { sequelize, Property } = require('../models');
 const { authenticateToken } = require('../middleware/auth');
 
 const router = express.Router();
@@ -12,8 +13,7 @@ router.post('/', authenticateToken, async (req, res) => {
       userId: req.user.userId
     };
 
-    const property = new Property(propertyData);
-    await property.save();
+    const property = await Property.create(propertyData);
 
     res.status(201).json({
       success: true,
@@ -29,15 +29,30 @@ router.post('/', authenticateToken, async (req, res) => {
 router.get('/', async (req, res) => {
   try {
     const { city, propertyType, status } = req.query;
-    let filter = {};
+    const whereClause = {};
+    if (propertyType) {
+      whereClause.propertyType = propertyType;
+    }
+    if (status) {
+      whereClause.status = status;
+    }
 
-    if (city) filter['location.city'] = city;
-    if (propertyType) filter.propertyType = propertyType;
-    if (status) filter.status = status;
+    const jsonFilters = [];
+    if (city) {
+      jsonFilters.push(sequelize.where(sequelize.json('location.city'), city));
+    }
+    if (jsonFilters.length) {
+      whereClause[Op.and] = jsonFilters;
+    }
 
-    const properties = await Property.find(filter)
-      .populate('userId', 'firstName lastName email')
-      .populate('recommendations');
+    const properties = await Property.findAll({
+      where: whereClause,
+      include: [
+        { association: 'owner', attributes: ['id', 'firstName', 'lastName', 'email'] },
+        { association: 'recommendations', through: { attributes: [] } }
+      ],
+      order: [['createdAt', 'DESC']]
+    });
 
     res.json({ success: true, count: properties.length, properties });
   } catch (error) {
@@ -48,9 +63,12 @@ router.get('/', async (req, res) => {
 // Get property by ID
 router.get('/:id', async (req, res) => {
   try {
-    const property = await Property.findById(req.params.id)
-      .populate('userId')
-      .populate('recommendations');
+    const property = await Property.findByPk(req.params.id, {
+      include: [
+        { association: 'owner' },
+        { association: 'recommendations', through: { attributes: [] } }
+      ]
+    });
 
     if (!property) {
       return res.status(404).json({ success: false, message: 'Property not found' });
@@ -65,23 +83,19 @@ router.get('/:id', async (req, res) => {
 // Update property
 router.put('/:id', authenticateToken, async (req, res) => {
   try {
-    const property = await Property.findById(req.params.id);
+    const property = await Property.findByPk(req.params.id);
 
     if (!property) {
       return res.status(404).json({ success: false, message: 'Property not found' });
     }
 
-    if (property.userId.toString() !== req.user.userId && req.user.role !== 'admin') {
+    if (property.userId !== req.user.userId && req.user.role !== 'admin') {
       return res.status(403).json({ success: false, message: 'Not authorized to update this property' });
     }
 
-    const updatedProperty = await Property.findByIdAndUpdate(
-      req.params.id,
-      { ...req.body, updatedAt: Date.now() },
-      { new: true }
-    );
+    await property.update({ ...req.body });
 
-    res.json({ success: true, message: 'Property updated successfully', property: updatedProperty });
+    res.json({ success: true, message: 'Property updated successfully', property });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
   }
@@ -90,17 +104,17 @@ router.put('/:id', authenticateToken, async (req, res) => {
 // Delete property
 router.delete('/:id', authenticateToken, async (req, res) => {
   try {
-    const property = await Property.findById(req.params.id);
+    const property = await Property.findByPk(req.params.id);
 
     if (!property) {
       return res.status(404).json({ success: false, message: 'Property not found' });
     }
 
-    if (property.userId.toString() !== req.user.userId && req.user.role !== 'admin') {
+    if (property.userId !== req.user.userId && req.user.role !== 'admin') {
       return res.status(403).json({ success: false, message: 'Not authorized to delete this property' });
     }
 
-    await Property.findByIdAndDelete(req.params.id);
+    await property.destroy();
 
     res.json({ success: true, message: 'Property deleted successfully' });
   } catch (error) {

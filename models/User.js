@@ -1,89 +1,88 @@
-const mongoose = require('mongoose');
+const { DataTypes } = require('sequelize');
 const bcrypt = require('bcryptjs');
+const { sequelize } = require('../config/database');
 
-const userSchema = new mongoose.Schema({
+const User = sequelize.define('User', {
+  id: {
+    type: DataTypes.UUID,
+    defaultValue: DataTypes.UUIDV4,
+    primaryKey: true
+  },
   firstName: {
-    type: String,
-    required: true,
-    trim: true
+    type: DataTypes.STRING,
+    allowNull: false
   },
   lastName: {
-    type: String,
-    required: true,
-    trim: true
+    type: DataTypes.STRING,
+    allowNull: false
   },
   email: {
-    type: String,
-    required: true,
+    type: DataTypes.STRING,
+    allowNull: false,
     unique: true,
-    lowercase: true,
-    match: /.+\@.+\..+/
+    validate: {
+      isEmail: true
+    }
   },
   password: {
-    type: String,
-    required: true,
-    minlength: 6,
-    select: false
+    type: DataTypes.STRING,
+    allowNull: false
   },
   phone: {
-    type: String,
-    trim: true
+    type: DataTypes.STRING,
+    allowNull: true
   },
   role: {
-    type: String,
-    enum: ['user', 'admin'],
-    default: 'user'
+    type: DataTypes.ENUM('user', 'admin'),
+    defaultValue: 'user'
   },
   city: {
-    type: String,
-    trim: true
+    type: DataTypes.STRING,
+    allowNull: true
   },
   state: {
-    type: String,
-    trim: true
+    type: DataTypes.STRING,
+    allowNull: true
   },
   profileImage: {
-    type: String,
-    default: null
+    type: DataTypes.STRING,
+    allowNull: true
   },
   bio: {
-    type: String,
-    default: ''
+    type: DataTypes.TEXT,
+    allowNull: true,
+    defaultValue: ''
   },
-  savedRecommendations: [{
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'Recommendation'
-  }],
-  propertySubmissions: [{
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'Property'
-  }],
   isActive: {
-    type: Boolean,
-    default: true
+    type: DataTypes.BOOLEAN,
+    defaultValue: true
+  }
+}, {
+  timestamps: true,
+  defaultScope: {
+    attributes: { exclude: ['password'] }
   },
-  createdAt: {
-    type: Date,
-    default: Date.now
-  },
-  updatedAt: {
-    type: Date,
-    default: Date.now
+  scopes: {
+    withPassword: {
+      attributes: { include: ['password'] }
+    }
   }
 });
 
-// Hash password before saving
-userSchema.pre('save', async function(next) {
-  if (!this.isModified('password')) return next();
-  
-  const salt = await bcrypt.genSalt(10);
-  this.password = await bcrypt.hash(this.password, salt);
-  next();
-});
+const hashPassword = async (user) => {
+  if (!user.changed('password')) {
+    return;
+  }
 
-// Method to compare password
-userSchema.methods.comparePassword = async function(enteredPassword) {
-  return await bcrypt.compare(enteredPassword, this.password);
+  const salt = await bcrypt.genSalt(10);
+  user.password = await bcrypt.hash(user.password, salt);
 };
 
-module.exports = mongoose.model('User', userSchema);
+User.beforeCreate(hashPassword);
+User.beforeUpdate(hashPassword);
+
+User.prototype.comparePassword = async function comparePassword(enteredPassword) {
+  return bcrypt.compare(enteredPassword, this.password);
+};
+
+module.exports = User;
