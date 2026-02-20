@@ -6,7 +6,7 @@ const path = require('path');
 // Load environment variables
 dotenv.config({ path: path.join(__dirname, '.env') });
 
-const { sequelize } = require('./models');
+const { sequelize, User } = require('./models');
 const { ensureDatabaseExists } = require('./config/database');
 
 const app = express();
@@ -18,6 +18,36 @@ app.use(express.urlencoded({ limit: '10mb', extended: true }));
 
 let isDatabaseConnected = false;
 
+const ensureAdminUser = async () => {
+  const adminEmail = process.env.ADMIN_EMAIL;
+  const adminPassword = process.env.ADMIN_PASSWORD;
+
+  if (!adminEmail || !adminPassword) {
+    return;
+  }
+
+  const existingAdmin = await User.scope('withPassword').findOne({
+    where: { email: adminEmail },
+  });
+
+  if (!existingAdmin) {
+    await User.create({
+      firstName: 'Admin',
+      lastName: 'User',
+      email: adminEmail,
+      password: adminPassword,
+      role: 'admin',
+    });
+    console.log(`👤 Default admin user created: ${adminEmail}`);
+    return;
+  }
+
+  if (existingAdmin.role !== 'admin') {
+    await existingAdmin.update({ role: 'admin' });
+    console.log(`🔐 Updated role to admin for: ${adminEmail}`);
+  }
+};
+
 const connectDatabase = async () => {
   try {
     console.log('🔗 Attempting to connect to MySQL...');
@@ -27,6 +57,7 @@ const connectDatabase = async () => {
     console.log('✅ MySQL connection established');
     await sequelize.sync();
     console.log('🔁 Models synchronized successfully');
+    await ensureAdminUser();
     isDatabaseConnected = true;
   } catch (error) {
     isDatabaseConnected = false;
@@ -46,11 +77,15 @@ app.get('/api/health', (req, res) => {
   });
 });
 
-// Routes (To be implemented)
+// Routes
 app.use('/api/auth', require('./routes/auth'));
 app.use('/api/users', require('./routes/users'));
 app.use('/api/properties', require('./routes/properties'));
 app.use('/api/recommendations', require('./routes/recommendations'));
+app.use('/api/valuations', require('./routes/valuations')); // <-- added
+app.use('/api/roi', require('./routes/roi'));
+app.use('/api/notifications', require('./routes/notifications'));
+app.use('/api/reports', require('./routes/reports'));
 
 // Error handling middleware
 app.use((err, req, res, next) => {
@@ -82,6 +117,9 @@ const startServer = async () => {
   }
 };
 
-startServer();
+// Avoid auto-start in test runs
+if (process.env.NODE_ENV !== 'test') {
+  startServer();
+}
 
 module.exports = app;

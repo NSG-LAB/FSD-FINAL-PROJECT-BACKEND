@@ -2,6 +2,7 @@ const { sequelize } = require('../config/database');
 const User = require('./User');
 const Property = require('./Property');
 const Recommendation = require('./Recommendation');
+const Notification = require('./Notification');
 
 User.hasMany(Property, {
   as: 'propertySubmissions',
@@ -53,9 +54,20 @@ Recommendation.belongsTo(User, {
   foreignKey: 'createdBy'
 });
 
+User.hasMany(Notification, {
+  as: 'notifications',
+  foreignKey: 'userId'
+});
+
+Notification.belongsTo(User, {
+  as: 'user',
+  foreignKey: 'userId'
+});
+
 module.exports = {
   sequelize,
   User,
   Property,
-  Recommendation
+  Recommendation,
+  Notification
 };
