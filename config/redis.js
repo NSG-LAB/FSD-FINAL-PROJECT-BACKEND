@@ -1,10 +1,21 @@
 const redis = require('redis');
 
 // Redis client configuration
+const redisHost = process.env.REDIS_HOST || 'localhost';
+const redisPort = process.env.REDIS_PORT || 6379;
+const redisPassword = process.env.REDIS_PASSWORD || undefined;
+
+console.log('Redis Configuration:', {
+  host: redisHost,
+  port: redisPort,
+  password: redisPassword ? '[REDACTED]' : undefined
+});
+
 const redisClient = redis.createClient({
-  host: process.env.REDIS_HOST || 'localhost',
-  port: process.env.REDIS_PORT || 6379,
-  password: process.env.REDIS_PASSWORD || undefined,
+  host: redisHost,
+  port: redisPort,
+  password: redisPassword,
+  family: 4, // Force IPv4
   retry_strategy: (options) => {
     if (options.error && options.error.code === 'ECONNREFUSED') {
       console.error('Redis connection refused');
