@@ -1,6 +1,9 @@
 const express = require('express');
 const { Recommendation, Property } = require('../models');
 const { authenticateToken, authorizeAdmin } = require('../middleware/auth');
+const { recommendationRules, handleValidationErrors } = require('../middleware/validation');
+const logger = require('../utils/logger');
+const { clearCache } = require('../middleware/cache');
 
 const router = express.Router();
 
@@ -73,7 +76,7 @@ router.get('/property/:propertyId', async (req, res) => {
 });
 
 // Create recommendation (Admin only)
-router.post('/', authenticateToken, authorizeAdmin, async (req, res) => {
+router.post('/', authenticateToken, authorizeAdmin, recommendationRules.create, handleValidationErrors, async (req, res) => {
   try {
     const relatedIds = buildRelatedIds(req.body);
     const {
@@ -93,12 +96,16 @@ router.post('/', authenticateToken, authorizeAdmin, async (req, res) => {
 
     await recommendation.reload({ include: [{ association: 'relatedRecommendations', through: { attributes: [] } }] });
 
+    // Clear recommendations cache
+    await clearCache('__express__/api/recommendations*');
+
     res.status(201).json({
       success: true,
       message: 'Recommendation created successfully',
       recommendation
     });
   } catch (error) {
+    logger.error('Recommendation creation error:', error.message);
     res.status(400).json({ success: false, message: error.message });
   }
 });
@@ -131,6 +138,9 @@ router.put('/:id', authenticateToken, authorizeAdmin, async (req, res) => {
 
     await recommendation.reload({ include: [{ association: 'relatedRecommendations', through: { attributes: [] } }] });
 
+    // Clear recommendations cache
+    await clearCache('__express__/api/recommendations*');
+
     res.json({
       success: true,
       message: 'Recommendation updated successfully',
@@ -151,6 +161,9 @@ router.delete('/:id', authenticateToken, authorizeAdmin, async (req, res) => {
     }
 
     await recommendation.destroy();
+
+    // Clear recommendations cache
+    await clearCache('__express__/api/recommendations*');
 
     res.json({ success: true, message: 'Recommendation deleted successfully' });
   } catch (error) {

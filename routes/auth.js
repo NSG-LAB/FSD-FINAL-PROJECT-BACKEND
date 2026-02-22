@@ -1,6 +1,9 @@
 const express = require('express');
 const jwt = require('jsonwebtoken');
 const { User } = require('../models');
+const logger = require('../utils/logger');
+const { authRules, handleValidationErrors } = require('../middleware/validation');
+const { authLimiter } = require('../middleware/rateLimiter');
 
 const router = express.Router();
 
@@ -19,15 +22,10 @@ const toPublicUser = (userInstance) => {
 };
 
 // Register
-router.post('/register', async (req, res) => {
+router.post('/register', authLimiter, authRules.register, handleValidationErrors, async (req, res) => {
   try {
     const { firstName, lastName, email, password, city, state } = req.body;
-    console.log('Registration request:', { firstName, lastName, email, city, state });
-
-    // Validation
-    if (!firstName || !lastName || !email || !password) {
-      return res.status(400).json({ success: false, message: 'All fields are required' });
-    }
+    logger.info('Registration request:', { firstName, lastName, email, city, state });
 
     // Check if user exists
     const existingUser = await User.findOne({ where: { email } });
@@ -53,19 +51,15 @@ router.post('/register', async (req, res) => {
       user: toPublicUser(user)
     });
   } catch (error) {
-    console.error('Registration error:', error);
+    logger.error('Registration error:', error.message);
     res.status(500).json({ success: false, message: error.message });
   }
 });
 
 // Login
-router.post('/login', async (req, res) => {
+router.post('/login', authLimiter, authRules.login, handleValidationErrors, async (req, res) => {
   try {
     const { email, password } = req.body;
-
-    if (!email || !password) {
-      return res.status(400).json({ success: false, message: 'Email and password are required' });
-    }
 
     const user = await User.scope('withPassword').findOne({ where: { email } });
     if (!user) {
@@ -86,6 +80,7 @@ router.post('/login', async (req, res) => {
       user: toPublicUser(user)
     });
   } catch (error) {
+    logger.error('Login error:', error.message);
     res.status(500).json({ success: false, message: error.message });
   }
 });

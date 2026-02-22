@@ -2,11 +2,14 @@ const express = require('express');
 const { Op } = require('sequelize');
 const { sequelize, Property } = require('../models');
 const { authenticateToken } = require('../middleware/auth');
+const { propertyRules, handleValidationErrors } = require('../middleware/validation');
+const logger = require('../utils/logger');
+const { clearCache } = require('../middleware/cache');
 
 const router = express.Router();
 
 // Create property submission
-router.post('/', authenticateToken, async (req, res) => {
+router.post('/', authenticateToken, propertyRules.create, handleValidationErrors, async (req, res) => {
   try {
     const propertyData = {
       ...req.body,
@@ -15,12 +18,16 @@ router.post('/', authenticateToken, async (req, res) => {
 
     const property = await Property.create(propertyData);
 
+    // Clear properties cache
+    await clearCache('__express__/api/properties*');
+
     res.status(201).json({
       success: true,
       message: 'Property submitted successfully',
       property
     });
   } catch (error) {
+    logger.error('Property creation error:', error.message);
     res.status(400).json({ success: false, message: error.message });
   }
 });
@@ -95,6 +102,9 @@ router.put('/:id', authenticateToken, async (req, res) => {
 
     await property.update({ ...req.body });
 
+    // Clear properties cache
+    await clearCache('__express__/api/properties*');
+
     res.json({ success: true, message: 'Property updated successfully', property });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
@@ -115,6 +125,9 @@ router.delete('/:id', authenticateToken, async (req, res) => {
     }
 
     await property.destroy();
+
+    // Clear properties cache
+    await clearCache('__express__/api/properties*');
 
     res.json({ success: true, message: 'Property deleted successfully' });
   } catch (error) {
