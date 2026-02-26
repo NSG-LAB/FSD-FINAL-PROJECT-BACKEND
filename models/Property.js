@@ -80,7 +80,8 @@ const Property = sequelize.define('Property', {
     defaultValue: 'pending'
   }
 }, {
-  timestamps: true
+  timestamps: true,
+  paranoid: true // Enables soft deletes (adds deletedAt column)
 });
 
 module.exports = Property;

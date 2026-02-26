@@ -1,3 +1,47 @@
+const multer = require('multer');
+const path = require('path');
+
+// Set up multer storage for image uploads
+const storage = multer.diskStorage({
+  destination: function (req, file, cb) {
+    cb(null, path.join(__dirname, '../uploads/'));
+  },
+  filename: function (req, file, cb) {
+    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+    cb(null, uniqueSuffix + '-' + file.originalname);
+  }
+});
+const upload = multer({ storage });
+// Image upload endpoint
+router.post('/upload-image', authenticateToken, upload.single('image'), (req, res) => {
+  if (!req.file) {
+    return res.status(400).json({ success: false, message: 'No file uploaded' });
+  }
+  // Return the file path for preview (relative to /uploads/)
+  const filePath = `/uploads/${req.file.filename}`;
+  res.json({ success: true, message: 'Image uploaded successfully', filePath });
+});
+const { Parser } = require('json2csv');
+// Export properties as CSV
+router.get('/export/csv', async (req, res) => {
+  try {
+    const properties = await Property.findAll();
+    const fields = [
+      'id', 'userId', 'title', 'description', 'propertyType', 'age', 'builUpArea',
+      'bedrooms', 'bathrooms', 'location', 'condition', 'currentValue', 'features',
+      'images', 'improvements', 'estimatedNewValue', 'potentialValueIncrease', 'status',
+      'createdAt', 'updatedAt', 'deletedAt'
+    ];
+    const opts = { fields };
+    const parser = new Parser(opts);
+    const csv = parser.parse(properties.map(p => p.toJSON()));
+    res.header('Content-Type', 'text/csv');
+    res.attachment('properties_export.csv');
+    return res.send(csv);
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+});
 const express = require('express');
 const { Op } = require('sequelize');
 const { sequelize, Property } = require('../models');
