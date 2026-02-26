@@ -6,6 +6,7 @@ const dotenv = require('dotenv');
 const path = require('path');
 const logger = require('./utils/logger');
 
+
 const app = express();
 // Serve uploaded images statically
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
@@ -31,7 +32,7 @@ const { ensureDatabaseExists } = require('./config/database');
 const redisClient = require('./config/redis'); // Redis client
 const { cacheMiddleware } = require('./middleware/cache'); // Cache middleware
 
-const app = express();
+
 
 // ==========================================
 // Security Middleware
