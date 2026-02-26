@@ -2,7 +2,7 @@ const redis = require('redis');
 
 // Redis client configuration
 const redisHost = process.env.REDIS_HOST || 'localhost';
-const redisPort = process.env.REDIS_PORT || 6379;
+const redisPort = process.env.REDIS_PORT || 6380;
 const redisPassword = process.env.REDIS_PASSWORD || undefined;
 
 console.log('Redis Configuration:', {
