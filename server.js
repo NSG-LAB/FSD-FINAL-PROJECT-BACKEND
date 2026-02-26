@@ -1,5 +1,3 @@
-// Serve uploaded images statically
-app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 const express = require('express');
 const cors = require('cors');
 const helmet = require('helmet');
@@ -7,6 +5,10 @@ const compression = require('compression');
 const dotenv = require('dotenv');
 const path = require('path');
 const logger = require('./utils/logger');
+
+const app = express();
+// Serve uploaded images statically
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 // Load environment variables
 dotenv.config({ path: path.join(__dirname, '.env') });
