@@ -53,4 +53,4 @@ const ensureDatabaseExists = async () => {
 
 const sequelize = createSequelizeInstance();
 
-module.exports = { sequelize, ensureDatabaseExists };
+module.exports = { sequelize, ensureDatabaseExists, getConnectionConfig };

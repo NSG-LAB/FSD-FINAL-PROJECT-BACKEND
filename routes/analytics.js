@@ -14,60 +14,63 @@ router.get('/overview', authenticateToken, authorizeAdmin, async (req, res) => {
     const startDate = new Date();
     startDate.setDate(startDate.getDate() - 30);
 
-    // User statistics
-    const totalUsers = await User.count();
-    const activeUsers = await User.count({
-      where: {
-        isActive: true
-      }
-    });
-    const newUsers = await User.count({
-      where: {
-        createdAt: {
-          [Op.between]: [startDate, endDate]
+    const [
+      totalUsers,
+      activeUsers,
+      newUsers,
+      totalProperties,
+      newProperties,
+      totalRecommendations,
+      activeRecommendations,
+      totalNotifications,
+      unreadNotifications,
+      userRoles,
+      propertyTypes
+    ] = await Promise.all([
+      User.count(),
+      User.count({
+        where: {
+          isActive: true
         }
-      }
-    });
-
-    // Property statistics
-    const totalProperties = await Property.count();
-    const newProperties = await Property.count({
-      where: {
-        createdAt: {
-          [Op.between]: [startDate, endDate]
+      }),
+      User.count({
+        where: {
+          createdAt: {
+            [Op.between]: [startDate, endDate]
+          }
         }
-      }
-    });
-
-    // Recommendation statistics
-    const totalRecommendations = await Recommendation.count();
-    const activeRecommendations = await Recommendation.count({
-      where: { isActive: true }
-    });
-
-    // Notification statistics
-    const totalNotifications = await Notification.count();
-    const unreadNotifications = await Notification.count({
-      where: { isRead: false }
-    });
-
-    // User role distribution
-    const userRoles = await User.findAll({
-      attributes: [
-        'role',
-        [Sequelize.fn('COUNT', Sequelize.col('role')), 'count']
-      ],
-      group: ['role']
-    });
-
-    // Property type distribution
-    const propertyTypes = await Property.findAll({
-      attributes: [
-        'propertyType',
-        [Sequelize.fn('COUNT', Sequelize.col('propertyType')), 'count']
-      ],
-      group: ['propertyType']
-    });
+      }),
+      Property.count(),
+      Property.count({
+        where: {
+          createdAt: {
+            [Op.between]: [startDate, endDate]
+          }
+        }
+      }),
+      Recommendation.count(),
+      Recommendation.count({
+        where: { isActive: true }
+      }),
+      Notification.count(),
+      Notification.count({
+        where: { isRead: false }
+      }),
+      User.findAll({
+        attributes: [
+          'role',
+          [Sequelize.fn('COUNT', Sequelize.col('role')), 'count']
+        ],
+        group: ['role']
+      }),
+      Property.findAll({
+        attributes: [
+          'propertyType',
+          [Sequelize.fn('COUNT', Sequelize.col('propertyType')), 'count']
+        ],
+        group: ['propertyType']
+      })
+    ]);
 
     res.json({
       success: true,
@@ -147,22 +150,26 @@ router.get('/user-activity', authenticateToken, authorizeAdmin, async (req, res)
     });
 
     // Top active users (by property count)
-    const topUsers = await User.findAll({
+    const topUsersRaw = await Property.findAll({
       attributes: [
-        'id',
-        'firstName',
-        'lastName',
-        'email',
-        [Sequelize.fn('COUNT', Sequelize.col('Properties.id')), 'propertyCount']
+        'userId',
+        [Sequelize.fn('COUNT', Sequelize.col('Property.id')), 'propertyCount']
       ],
       include: [{
-        model: Property,
-        attributes: []
+        association: 'owner',
+        attributes: ['id', 'firstName', 'lastName', 'email']
       }],
-      group: ['User.id'],
-      order: [[Sequelize.fn('COUNT', Sequelize.col('Properties.id')), 'DESC']],
+      group: ['Property.userId', 'owner.id'],
+      order: [[Sequelize.fn('COUNT', Sequelize.col('Property.id')), 'DESC']],
       limit: 10
     });
+
+    const topUsers = topUsersRaw.map((row) => ({
+      id: row.owner?.id || row.userId,
+      name: row.owner ? `${row.owner.firstName} ${row.owner.lastName}` : 'Unknown User',
+      email: row.owner?.email || null,
+      propertyCount: parseInt(row.dataValues.propertyCount)
+    }));
 
     res.json({
       success: true,
@@ -175,12 +182,7 @@ router.get('/user-activity', authenticateToken, authorizeAdmin, async (req, res)
           date: sub.dataValues.date,
           count: parseInt(sub.dataValues.count)
         })),
-        topUsers: topUsers.map(user => ({
-          id: user.id,
-          name: `${user.firstName} ${user.lastName}`,
-          email: user.email,
-          propertyCount: parseInt(user.dataValues.propertyCount)
-        }))
+        topUsers
       }
     });
   } catch (error) {
@@ -192,6 +194,15 @@ router.get('/user-activity', authenticateToken, authorizeAdmin, async (req, res)
 // Get property analytics
 router.get('/properties', authenticateToken, authorizeAdmin, async (req, res) => {
   try {
+    const cityExpr = Sequelize.fn(
+      'JSON_UNQUOTE',
+      Sequelize.fn('JSON_EXTRACT', Sequelize.col('location'), Sequelize.literal("'$.city'"))
+    );
+    const stateExpr = Sequelize.fn(
+      'JSON_UNQUOTE',
+      Sequelize.fn('JSON_EXTRACT', Sequelize.col('location'), Sequelize.literal("'$.state'"))
+    );
+
     // Property status distribution
     const propertyStatus = await Property.findAll({
       attributes: [
@@ -204,15 +215,19 @@ router.get('/properties', authenticateToken, authorizeAdmin, async (req, res) =>
     // Properties by city/state
     const propertiesByLocation = await Property.findAll({
       attributes: [
-        'city',
-        'state',
+        [cityExpr, 'city'],
+        [stateExpr, 'state'],
         [Sequelize.fn('COUNT', Sequelize.col('id')), 'count']
       ],
       where: {
-        city: { [Op.ne]: null },
-        state: { [Op.ne]: null }
+        [Op.and]: [
+          sequelize.where(cityExpr, { [Op.ne]: null }),
+          sequelize.where(cityExpr, { [Op.ne]: '' }),
+          sequelize.where(stateExpr, { [Op.ne]: null }),
+          sequelize.where(stateExpr, { [Op.ne]: '' })
+        ]
       },
-      group: ['city', 'state'],
+      group: [cityExpr, stateExpr],
       order: [[Sequelize.fn('COUNT', Sequelize.col('id')), 'DESC']],
       limit: 20
     });
@@ -221,11 +236,11 @@ router.get('/properties', authenticateToken, authorizeAdmin, async (req, res) =>
     const avgValuesByType = await Property.findAll({
       attributes: [
         'propertyType',
-        [Sequelize.fn('AVG', Sequelize.col('estimatedValue')), 'avgValue'],
+        [Sequelize.fn('AVG', Sequelize.col('currentValue')), 'avgValue'],
         [Sequelize.fn('COUNT', Sequelize.col('id')), 'count']
       ],
       where: {
-        estimatedValue: { [Op.ne]: null }
+        currentValue: { [Op.ne]: null }
       },
       group: ['propertyType']
     });

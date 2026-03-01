@@ -73,9 +73,22 @@ const deleteCache = async (key) => {
 
 const clearCache = async (pattern = '*') => {
   try {
-    const keys = await redisClient.keys(pattern);
-    if (keys.length > 0) {
-      await redisClient.del(keys);
+    if (!redisClient.isReady) {
+      return;
+    }
+
+    const batch = [];
+    for await (const key of redisClient.scanIterator({ MATCH: pattern, COUNT: 100 })) {
+      batch.push(key);
+
+      if (batch.length >= 100) {
+        await redisClient.del(batch);
+        batch.length = 0;
+      }
+    }
+
+    if (batch.length > 0) {
+      await redisClient.del(batch);
     }
   } catch (error) {
     console.error('Redis clear cache error:', error);

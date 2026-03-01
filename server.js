@@ -30,7 +30,7 @@ if (missingEnvVars.length > 0) {
 logger.info('All required environment variables are set');
 
 const { sequelize, User } = require('./models');
-const { ensureDatabaseExists } = require('./config/database');
+const { ensureDatabaseExists, getConnectionConfig } = require('./config/database');
 const redisClient = require('./config/redis'); // Redis client
 const { cacheMiddleware } = require('./middleware/cache'); // Cache middleware
 
@@ -128,12 +128,24 @@ const ensureAdminUser = async () => {
 
 const connectDatabase = async () => {
   try {
+    const dbConfig = getConnectionConfig();
+    logger.info('Active DB target', {
+      host: dbConfig.host,
+      port: dbConfig.port,
+      database: dbConfig.database,
+      username: dbConfig.username
+    });
+
     logger.info('Attempting to connect to MySQL...');
     await ensureDatabaseExists();
     logger.info('Database ensured');
     await sequelize.authenticate();
     logger.info('MySQL connection established');
-    await sequelize.sync();
+    const shouldAlterSchema = process.env.DB_SYNC_ALTER
+      ? String(process.env.DB_SYNC_ALTER).toLowerCase() === 'true'
+      : process.env.NODE_ENV === 'development';
+
+    await sequelize.sync({ alter: shouldAlterSchema });
     logger.info('Models synchronized successfully');
     await ensureAdminUser();
     isDatabaseConnected = true;
@@ -178,7 +190,7 @@ app.use('/api/valuations', require('./routes/valuations')); // <-- added
 app.use('/api/roi', require('./routes/roi'));
 app.use('/api/notifications', require('./routes/notifications'));
 app.use('/api/reports', require('./routes/reports'));
-app.use('/api/analytics', require('./routes/analytics')); // Analytics dashboard
+app.use('/api/analytics', cacheMiddleware(120), require('./routes/analytics')); // Analytics dashboard (cache 2 minutes)
 app.use('/api/monitoring', require('./routes/monitoring')); // Performance monitoring
 
 // Error handling middleware
@@ -199,14 +211,34 @@ app.use((req, res) => {
 // Start Server
 const PORT = process.env.PORT || 5000;
 
+const startListening = (preferredPort, retriesRemaining = 15) =>
+  new Promise((resolve, reject) => {
+    const server = app.listen(preferredPort);
+
+    server.once('listening', () => {
+      resolve({ server, port: preferredPort });
+    });
+
+    server.once('error', (error) => {
+      if (error.code === 'EADDRINUSE' && isDevelopment && retriesRemaining > 0) {
+        const fallbackPort = Number(preferredPort) + 1;
+        logger.warn(`Port ${preferredPort} is in use. Retrying on port ${fallbackPort}...`);
+        resolve(startListening(fallbackPort, retriesRemaining - 1));
+        return;
+      }
+
+      reject(error);
+    });
+  });
+
 const startServer = async () => {
   try {
     await connectDatabase();
-    app.listen(PORT, () => {
-      logger.info(`Server running on port ${PORT}`);
-    });
+    const preferredPort = Number(PORT) || 5000;
+    const { port } = await startListening(preferredPort);
+    logger.info(`Server running on port ${port}`);
   } catch (error) {
-    logger.error('Server failed to start due to database connection issues.');
+    logger.error('Server failed to start.', { error: error.message });
     process.exit(1);
   }
 };
