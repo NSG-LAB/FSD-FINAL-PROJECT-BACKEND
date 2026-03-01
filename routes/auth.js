@@ -4,7 +4,7 @@ const { User } = require('../models');
 const logger = require('../utils/logger');
 const { authenticateToken } = require('../middleware/auth');
 const { authRules, handleValidationErrors } = require('../middleware/validation');
-const { authLimiter } = require('../middleware/rateLimiter');
+const { loginLimiter, registerLimiter } = require('../middleware/rateLimiter');
 
 const router = express.Router();
 
@@ -23,7 +23,7 @@ const toPublicUser = (userInstance) => {
 };
 
 // Register
-router.post('/register', authLimiter, authRules.register, handleValidationErrors, async (req, res) => {
+router.post('/register', registerLimiter, authRules.register, handleValidationErrors, async (req, res) => {
   try {
     const { firstName, lastName, email, password, city, state } = req.body;
     logger.info('Registration request:', { firstName, lastName, email, city, state });
@@ -58,7 +58,7 @@ router.post('/register', authLimiter, authRules.register, handleValidationErrors
 });
 
 // Login
-router.post('/login', authLimiter, authRules.login, handleValidationErrors, async (req, res) => {
+router.post('/login', loginLimiter, authRules.login, handleValidationErrors, async (req, res) => {
   try {
     const { email, password } = req.body;
 

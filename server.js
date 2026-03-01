@@ -39,7 +39,27 @@ const { cacheMiddleware } = require('./middleware/cache'); // Cache middleware
 // ==========================================
 // Security Middleware
 // ==========================================
-app.use(helmet()); // Security headers
+const isDevelopment = process.env.NODE_ENV === 'development';
+
+app.use(helmet({
+  contentSecurityPolicy: isDevelopment
+    ? {
+        directives: {
+          defaultSrc: ["'self'"],
+          scriptSrc: ["'self'", "'unsafe-inline'"],
+          styleSrc: ["'self'", "'unsafe-inline'", 'https:'],
+          imgSrc: ["'self'", 'data:', 'blob:', 'https:'],
+          connectSrc: [
+            "'self'",
+            'http://localhost:*',
+            'http://127.0.0.1:*',
+            'ws://localhost:*',
+            'ws://127.0.0.1:*',
+          ],
+        },
+      }
+    : undefined,
+})); // Security headers
 app.use(compression()); // Response compression
 
 // ==========================================
@@ -53,7 +73,12 @@ const corsOptions = {
       process.env.FRONTEND_URL
     ].filter(Boolean);
 
-    if (!origin || allowedOrigins.includes(origin)) {
+    const isLocalDevOrigin =
+      process.env.NODE_ENV === 'development' &&
+      typeof origin === 'string' &&
+      /^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/i.test(origin);
+
+    if (!origin || allowedOrigins.includes(origin) || isLocalDevOrigin) {
       callback(null, true);
     } else {
       logger.warn('CORS request blocked', { origin });
