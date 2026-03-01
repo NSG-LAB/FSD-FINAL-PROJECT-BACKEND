@@ -2,9 +2,11 @@ const express = require('express');
 const cors = require('cors');
 const helmet = require('helmet');
 const compression = require('compression');
+const swaggerUi = require('swagger-ui-express');
 const dotenv = require('dotenv');
 const path = require('path');
 const logger = require('./utils/logger');
+const openApiSpec = require('./docs/openapi');
 
 
 const app = express();
@@ -135,6 +137,12 @@ app.get('/api/health', async (req, res) => {
     timestamp: new Date().toISOString()
   });
 });
+
+app.get('/api/openapi.json', (req, res) => {
+  res.json(openApiSpec);
+});
+
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(openApiSpec));
 
 // Routes
 app.use('/api/auth', require('./routes/auth'));

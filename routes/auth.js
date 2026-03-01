@@ -2,6 +2,7 @@ const express = require('express');
 const jwt = require('jsonwebtoken');
 const { User } = require('../models');
 const logger = require('../utils/logger');
+const { authenticateToken } = require('../middleware/auth');
 const { authRules, handleValidationErrors } = require('../middleware/validation');
 const { authLimiter } = require('../middleware/rateLimiter');
 
@@ -82,6 +83,19 @@ router.post('/login', authLimiter, authRules.login, handleValidationErrors, asyn
   } catch (error) {
     logger.error('Login error:', error.message);
     res.status(500).json({ success: false, message: error.message });
+  }
+});
+
+// Logout (stateless JWT logout handled client-side by clearing token)
+router.post('/logout', authenticateToken, async (req, res) => {
+  try {
+    return res.json({
+      success: true,
+      message: 'Logout successful. Remove token from client storage.'
+    });
+  } catch (error) {
+    logger.error('Logout error:', error.message);
+    return res.status(500).json({ success: false, message: error.message });
   }
 });
 

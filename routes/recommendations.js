@@ -1,4 +1,5 @@
 const express = require('express');
+const { Op } = require('sequelize');
 const { Recommendation, Property } = require('../models');
 const { authenticateToken, authorizeAdmin } = require('../middleware/auth');
 const { recommendationRules, handleValidationErrors } = require('../middleware/validation');
@@ -20,19 +21,47 @@ const buildRelatedIds = (body) => {
 // Get all recommendations
 router.get('/', async (req, res) => {
   try {
-    const { category, difficulty } = req.query;
+    const {
+      category,
+      difficulty,
+      q,
+      limit = '10',
+      offset = '0',
+      sortBy = 'priority',
+      order = 'DESC'
+    } = req.query;
+
+    const parsedLimit = Math.min(Math.max(parseInt(limit, 10) || 10, 1), 100);
+    const parsedOffset = Math.max(parseInt(offset, 10) || 0, 0);
+    const allowedSortFields = ['priority', 'title', 'difficulty', 'expectedROI', 'createdAt', 'updatedAt'];
+    const safeSortBy = allowedSortFields.includes(sortBy) ? sortBy : 'priority';
+    const safeOrder = String(order).toUpperCase() === 'ASC' ? 'ASC' : 'DESC';
+
     const whereClause = { isActive: true };
 
     if (category) whereClause.category = category;
     if (difficulty) whereClause.difficulty = difficulty;
+    if (q) {
+      whereClause.title = { [Op.like]: `%${q}%` };
+    }
 
-    const recommendations = await Recommendation.findAll({
+    const { count, rows } = await Recommendation.findAndCountAll({
       where: whereClause,
       include: [{ association: 'relatedRecommendations', through: { attributes: [] } }],
-      order: [['priority', 'DESC']]
+      order: [[safeSortBy, safeOrder]],
+      limit: parsedLimit,
+      offset: parsedOffset,
+      distinct: true
     });
 
-    res.json({ success: true, count: recommendations.length, recommendations });
+    res.json({
+      success: true,
+      count,
+      limit: parsedLimit,
+      offset: parsedOffset,
+      hasMore: parsedOffset + rows.length < count,
+      recommendations: rows
+    });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
   }

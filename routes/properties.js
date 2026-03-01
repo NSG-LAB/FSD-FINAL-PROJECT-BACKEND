@@ -1,5 +1,16 @@
+
 const multer = require('multer');
 const path = require('path');
+const express = require('express');
+const { Op } = require('sequelize');
+const { sequelize, Property } = require('../models');
+const { authenticateToken } = require('../middleware/auth');
+const { propertyRules, handleValidationErrors } = require('../middleware/validation');
+const logger = require('../utils/logger');
+const { clearCache } = require('../middleware/cache');
+const { Parser } = require('json2csv');
+
+const router = express.Router();
 
 // Set up multer storage for image uploads
 const storage = multer.diskStorage({
@@ -12,6 +23,7 @@ const storage = multer.diskStorage({
   }
 });
 const upload = multer({ storage });
+
 // Image upload endpoint
 router.post('/upload-image', authenticateToken, upload.single('image'), (req, res) => {
   if (!req.file) {
@@ -21,7 +33,7 @@ router.post('/upload-image', authenticateToken, upload.single('image'), (req, re
   const filePath = `/uploads/${req.file.filename}`;
   res.json({ success: true, message: 'Image uploaded successfully', filePath });
 });
-const { Parser } = require('json2csv');
+
 // Export properties as CSV
 router.get('/export/csv', async (req, res) => {
   try {
@@ -42,15 +54,6 @@ router.get('/export/csv', async (req, res) => {
     res.status(500).json({ success: false, message: error.message });
   }
 });
-const express = require('express');
-const { Op } = require('sequelize');
-const { sequelize, Property } = require('../models');
-const { authenticateToken } = require('../middleware/auth');
-const { propertyRules, handleValidationErrors } = require('../middleware/validation');
-const logger = require('../utils/logger');
-const { clearCache } = require('../middleware/cache');
-
-const router = express.Router();
 
 // Create property submission
 router.post('/', authenticateToken, propertyRules.create, handleValidationErrors, async (req, res) => {
@@ -79,7 +82,23 @@ router.post('/', authenticateToken, propertyRules.create, handleValidationErrors
 // Get all properties
 router.get('/', async (req, res) => {
   try {
-    const { city, propertyType, status } = req.query;
+    const {
+      city,
+      propertyType,
+      status,
+      q,
+      limit = '10',
+      offset = '0',
+      sortBy = 'createdAt',
+      order = 'DESC'
+    } = req.query;
+
+    const parsedLimit = Math.min(Math.max(parseInt(limit, 10) || 10, 1), 100);
+    const parsedOffset = Math.max(parseInt(offset, 10) || 0, 0);
+    const allowedSortFields = ['createdAt', 'updatedAt', 'currentValue', 'title', 'status'];
+    const safeSortBy = allowedSortFields.includes(sortBy) ? sortBy : 'createdAt';
+    const safeOrder = String(order).toUpperCase() === 'ASC' ? 'ASC' : 'DESC';
+
     const whereClause = {};
     if (propertyType) {
       whereClause.propertyType = propertyType;
@@ -92,20 +111,36 @@ router.get('/', async (req, res) => {
     if (city) {
       jsonFilters.push(sequelize.where(sequelize.json('location.city'), city));
     }
+    if (q) {
+      whereClause[Op.or] = [
+        { title: { [Op.like]: `%${q}%` } },
+        { description: { [Op.like]: `%${q}%` } }
+      ];
+    }
     if (jsonFilters.length) {
       whereClause[Op.and] = jsonFilters;
     }
 
-    const properties = await Property.findAll({
+    const { count, rows } = await Property.findAndCountAll({
       where: whereClause,
       include: [
         { association: 'owner', attributes: ['id', 'firstName', 'lastName', 'email'] },
         { association: 'recommendations', through: { attributes: [] } }
       ],
-      order: [['createdAt', 'DESC']]
+      order: [[safeSortBy, safeOrder]],
+      limit: parsedLimit,
+      offset: parsedOffset,
+      distinct: true
     });
 
-    res.json({ success: true, count: properties.length, properties });
+    res.json({
+      success: true,
+      count,
+      limit: parsedLimit,
+      offset: parsedOffset,
+      hasMore: parsedOffset + rows.length < count,
+      properties: rows
+    });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
   }
