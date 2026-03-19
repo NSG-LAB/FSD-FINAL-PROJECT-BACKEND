@@ -96,6 +96,44 @@ app.use(express.urlencoded({ limit: '10mb', extended: true }));
 
 let isDatabaseConnected = false;
 
+const ensureDemoAccounts = async () => {
+  const demoAccounts = [
+    {
+      firstName: 'Admin',
+      lastName: 'User',
+      email: 'admin@demo.com',
+      password: 'Admin@123456',
+      role: 'admin',
+      city: 'Mumbai',
+      state: 'Maharashtra',
+      bio: 'Administrator account for testing'
+    },
+    {
+      firstName: 'Demo',
+      lastName: 'User',
+      email: 'user@demo.com',
+      password: 'User@123456',
+      role: 'user',
+      city: 'Bangalore',
+      state: 'Karnataka',
+      bio: 'Regular user account for testing'
+    }
+  ];
+
+  for (const account of demoAccounts) {
+    const existingUser = await User.findOne({
+      where: { email: account.email }
+    });
+
+    if (!existingUser) {
+      await User.create(account);
+      logger.info(`Demo ${account.role} account created: ${account.email}`);
+    } else {
+      logger.info(`Demo account already exists: ${account.email}`);
+    }
+  }
+};
+
 const ensureAdminUser = async () => {
   const adminEmail = process.env.ADMIN_EMAIL;
   const adminPassword = process.env.ADMIN_PASSWORD;
@@ -147,6 +185,7 @@ const connectDatabase = async () => {
 
     await sequelize.sync({ alter: shouldAlterSchema });
     logger.info('Models synchronized successfully');
+    await ensureDemoAccounts();
     await ensureAdminUser();
     isDatabaseConnected = true;
   } catch (error) {

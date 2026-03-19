@@ -32,21 +32,23 @@ if (isRedisDisabled) {
   });
 
   const redisClient = redis.createClient({
-    host: redisHost,
-    port: redisPort,
+    socket: {
+      host: redisHost,
+      port: redisPort,
+      family: 4, // Force IPv4
+    },
     password: redisPassword,
-    family: 4, // Force IPv4
     retry_strategy: (options) => {
       if (options.error && options.error.code === 'ECONNREFUSED') {
-        console.error('Redis connection refused');
-        return new Error('Redis connection refused');
+        console.warn('Redis connection refused');
+        return undefined;
       }
       if (options.total_retry_time > 1000 * 60 * 60) {
-        console.error('Redis retry time exhausted');
-        return new Error('Retry time exhausted');
+        console.warn('Redis retry time exhausted');
+        return undefined;
       }
       if (options.attempt > 10) {
-        console.error('Redis retry attempts exhausted');
+        console.warn('Redis retry attempts exhausted');
         return undefined;
       }
       // Reconnect after
@@ -56,7 +58,7 @@ if (isRedisDisabled) {
 
   // Event listeners for Redis client
   redisClient.on('error', (err) => {
-    console.error('Redis Client Error', err);
+    console.warn('Redis Client Error (non-fatal)', err.message);
   });
 
   redisClient.on('connect', () => {
@@ -71,8 +73,11 @@ if (isRedisDisabled) {
     console.log('Redis connection ended');
   });
 
-  // Connect to Redis
-  redisClient.connect().catch(console.error);
+  // Connect to Redis with graceful fallback
+  redisClient.connect().catch((err) => {
+    console.warn('Redis connection failed, continuing without Redis cache:', err.message);
+    // Don't crash - Redis is optional for this app
+  });
 
   module.exports = redisClient;
 }
