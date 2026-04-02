@@ -65,6 +65,10 @@ router.post('/', authenticateToken, propertyRules.create, handleValidationErrors
 
     const property = await Property.create(propertyData);
 
+    // Auto-create enhancement checklist items
+    const { ensureChecklistForProperty } = require('../services/checklistAutoCreateService');
+    await ensureChecklistForProperty(property.id, property.userId);
+
     // Clear properties cache
     await clearCache('__express__/api/properties*');
 

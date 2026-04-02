@@ -3,6 +3,27 @@ const User = require('./User');
 const Property = require('./Property');
 const Recommendation = require('./Recommendation');
 const Notification = require('./Notification');
+const EnhancementChecklist = require('./EnhancementChecklist');
+// EnhancementChecklist associations
+Property.hasMany(EnhancementChecklist, {
+  as: 'enhancementChecklists',
+  foreignKey: 'propertyId'
+});
+
+EnhancementChecklist.belongsTo(Property, {
+  as: 'property',
+  foreignKey: 'propertyId'
+});
+
+User.hasMany(EnhancementChecklist, {
+  as: 'userEnhancementChecklists',
+  foreignKey: 'userId'
+});
+
+EnhancementChecklist.belongsTo(User, {
+  as: 'user',
+  foreignKey: 'userId'
+});
 
 User.hasMany(Property, {
   as: 'propertySubmissions',
@@ -69,5 +90,6 @@ module.exports = {
   User,
   Property,
   Recommendation,
-  Notification
+  Notification,
+  EnhancementChecklist
 };

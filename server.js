@@ -228,6 +228,7 @@ app.use('/api/recommendations', cacheMiddleware(300), require('./routes/recommen
 app.use('/api/valuations', require('./routes/valuations')); // <-- added
 app.use('/api/roi', require('./routes/roi'));
 app.use('/api/notifications', require('./routes/notifications'));
+app.use('/api/enhancement-checklist', require('./routes/enhancementChecklist'));
 app.use('/api/reports', require('./routes/reports'));
 app.use('/api/analytics', cacheMiddleware(120), require('./routes/analytics')); // Analytics dashboard (cache 2 minutes)
 app.use('/api/monitoring', require('./routes/monitoring')); // Performance monitoring
