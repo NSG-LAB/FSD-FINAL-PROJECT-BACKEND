@@ -184,7 +184,9 @@ describe('Auth Routes', () => {
   beforeAll(async () => {
     try {
       await sequelize.authenticate();
+      await sequelize.query('SET FOREIGN_KEY_CHECKS = 0');
       await sequelize.sync({ force: true });
+      await sequelize.query('SET FOREIGN_KEY_CHECKS = 1');
     } catch (error) {
       console.error('Test database setup failed:', error);
       throw error;

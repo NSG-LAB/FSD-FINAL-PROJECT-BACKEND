@@ -8,11 +8,13 @@ require('dotenv').config({ path: path.join(__dirname, '..', '.env') });
 // Set up test environment
 process.env.NODE_ENV = 'test';
 process.env.JWT_SECRET = process.env.JWT_SECRET || 'test_jwt_secret_key_for_testing_only';
-process.env.MYSQL_DB = 'property_app_test_properties'; // Different database for properties tests
+process.env.MYSQL_DB = process.env.MYSQL_DB || 'property_app_test';
 process.env.MYSQL_USER = process.env.MYSQL_USER || 'root';
 process.env.MYSQL_PASSWORD = process.env.MYSQL_PASSWORD || 'Root@123';
 process.env.MYSQL_HOST = process.env.MYSQL_HOST || 'localhost';
 process.env.MYSQL_PORT = process.env.MYSQL_PORT || '3306';
+
+const TEST_DB_NAME = process.env.MYSQL_DB;
 
 // Create test sequelize instance
 const sequelize = new Sequelize({
@@ -21,7 +23,7 @@ const sequelize = new Sequelize({
   port: process.env.MYSQL_PORT || '3306',
   username: process.env.MYSQL_USER || 'root',
   password: process.env.MYSQL_PASSWORD || 'Root@123',
-  database: 'property_app_test_properties', // Hardcoded for properties tests
+  database: TEST_DB_NAME,
   logging: false,
   pool: {
     max: 5,
@@ -247,23 +249,10 @@ describe('Properties Routes', () => {
 
   beforeAll(async () => {
     try {
-      // Drop and recreate test database to ensure clean state
-      const tempSequelize = new Sequelize({
-        dialect: 'mysql',
-        host: process.env.MYSQL_HOST || 'localhost',
-        port: process.env.MYSQL_PORT || '3306',
-        username: process.env.MYSQL_USER || 'root',
-        password: process.env.MYSQL_PASSWORD || 'Root@123',
-        database: 'mysql', // Connect to mysql system database first
-        logging: false
-      });
-
-      await tempSequelize.query(`DROP DATABASE IF EXISTS property_app_test_properties`);
-      await tempSequelize.query(`CREATE DATABASE property_app_test_properties`);
-      await tempSequelize.close();
-
-      // Sync the test database
+      // Recreate schema within configured test DB without requiring DB-level CREATE/DROP privileges.
+      await sequelize.query('SET FOREIGN_KEY_CHECKS = 0');
       await sequelize.sync({ force: true });
+      await sequelize.query('SET FOREIGN_KEY_CHECKS = 1');
 
       const result = await createTestUserAndGetToken();
       testUser = result.user;
