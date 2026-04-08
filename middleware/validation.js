@@ -103,9 +103,44 @@ const recommendationRules = {
   ]
 };
 
+// User profile validation rules
+const userRules = {
+  updateProfile: [
+    body('firstName')
+      .optional()
+      .trim()
+      .isLength({ min: 1, max: 50 }).withMessage('First name must be 1-50 chars'),
+    body('lastName')
+      .optional()
+      .trim()
+      .isLength({ min: 1, max: 50 }).withMessage('Last name must be 1-50 chars'),
+    body('phone')
+      .optional({ nullable: true })
+      .trim()
+      .isLength({ max: 20 }).withMessage('Phone max 20 chars'),
+    body('city')
+      .optional({ nullable: true })
+      .trim()
+      .isLength({ max: 100 }).withMessage('City max 100 chars'),
+    body('state')
+      .optional({ nullable: true })
+      .trim()
+      .isLength({ max: 100 }).withMessage('State max 100 chars'),
+    body('bio')
+      .optional({ nullable: true })
+      .trim()
+      .isLength({ max: 1000 }).withMessage('Bio max 1000 chars'),
+    body('profileImage')
+      .optional({ nullable: true })
+      .trim()
+      .isURL().withMessage('Profile image must be a valid URL')
+  ]
+};
+
 module.exports = {
   handleValidationErrors,
   authRules,
   propertyRules,
-  recommendationRules
+  recommendationRules,
+  userRules
 };
