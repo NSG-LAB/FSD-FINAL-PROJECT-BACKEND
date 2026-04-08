@@ -51,6 +51,22 @@ const { cacheMiddleware } = require('./middleware/cache'); // Cache middleware
 // Security Middleware
 // ==========================================
 const isDevelopment = process.env.NODE_ENV === 'development';
+const parseOriginList = (value) =>
+  String(value || '')
+    .split(',')
+    .map((item) => item.trim())
+    .filter(Boolean);
+
+const configuredOrigins = [
+  ...parseOriginList(process.env.FRONTEND_URL),
+  ...parseOriginList(process.env.CORS_ALLOWED_ORIGINS),
+];
+
+const allowedOrigins = new Set([
+  'http://localhost:3000',
+  'http://localhost:5173',
+  ...configuredOrigins,
+]);
 
 app.use(helmet({
   contentSecurityPolicy: isDevelopment
@@ -78,22 +94,22 @@ app.use(compression()); // Response compression
 // ==========================================
 const corsOptions = {
   origin: (origin, callback) => {
-    const allowedOrigins = [
-      'http://localhost:3000',
-      'http://localhost:5173', // Vite dev server
-      process.env.FRONTEND_URL
-    ].filter(Boolean);
-
     const isLocalDevOrigin =
       process.env.NODE_ENV === 'development' &&
       typeof origin === 'string' &&
       /^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/i.test(origin);
 
-    if (!origin || allowedOrigins.includes(origin) || isLocalDevOrigin) {
+    const isHostedFrontendOrigin =
+      typeof origin === 'string' &&
+      /^https:\/\/[a-z0-9-]+\.(netlify\.app|vercel\.app)$/i.test(origin);
+
+    if (!origin || allowedOrigins.has(origin) || isLocalDevOrigin || isHostedFrontendOrigin) {
       callback(null, true);
     } else {
       logger.warn('CORS request blocked', { origin });
-      callback(new Error('CORS policy violation'));
+      const corsError = new Error('CORS policy violation');
+      corsError.statusCode = 403;
+      callback(corsError);
     }
   },
   credentials: true,
@@ -246,10 +262,11 @@ app.use('/api/monitoring', require('./routes/monitoring')); // Performance monit
 
 // Error handling middleware
 app.use((err, req, res, next) => {
+  const statusCode = err.statusCode || 500;
   logger.error('Unhandled error', { error: err.message, stack: err.stack });
-  res.status(500).json({ 
+  res.status(statusCode).json({ 
     success: false, 
-    message: 'Something went wrong!',
+    message: statusCode === 500 ? 'Something went wrong!' : err.message,
     error: process.env.NODE_ENV === 'development' ? err.message : undefined
   });
 });
