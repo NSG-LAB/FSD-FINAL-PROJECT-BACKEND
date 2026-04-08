@@ -19,8 +19,19 @@ dotenv.config({ path: path.join(__dirname, '.env') });
 // ==========================================
 // CRITICAL FIX: Validate required environment variables
 // ==========================================
-const requiredEnvVars = ['JWT_SECRET', 'MYSQL_DB', 'MYSQL_USER'];
-const missingEnvVars = requiredEnvVars.filter(envVar => !process.env[envVar]);
+const missingEnvVars = [];
+
+if (!process.env.JWT_SECRET) {
+  missingEnvVars.push('JWT_SECRET');
+}
+
+const hasMysqlUri = Boolean(process.env.MYSQL_URI);
+const hasMysqlDbAndUser = Boolean(process.env.MYSQL_DB || process.env.MYSQLDATABASE)
+  && Boolean(process.env.MYSQL_USER || process.env.MYSQLUSER);
+
+if (!hasMysqlUri && !hasMysqlDbAndUser) {
+  missingEnvVars.push('MYSQL_URI or MYSQL_DB + MYSQL_USER');
+}
 
 if (missingEnvVars.length > 0) {
   logger.error('Missing required environment variables', { missing: missingEnvVars });
@@ -250,6 +261,7 @@ app.use((req, res) => {
 
 // Start Server
 const PORT = process.env.PORT || 5000;
+let serverInstance = null;
 
 const startListening = (preferredPort, retriesRemaining = 15) =>
   new Promise((resolve, reject) => {
@@ -271,17 +283,81 @@ const startListening = (preferredPort, retriesRemaining = 15) =>
     });
   });
 
+const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+
+const connectDatabaseWithRetry = async () => {
+  let attempt = 0;
+
+  while (!isDatabaseConnected) {
+    attempt += 1;
+    try {
+      await connectDatabase();
+      return;
+    } catch (error) {
+      const backoffMs = Math.min(30000, attempt * 5000);
+      logger.warn('Database init failed; retrying in background', {
+        attempt,
+        retryInMs: backoffMs,
+        error: error.message,
+      });
+      await delay(backoffMs);
+    }
+  }
+};
+
+const gracefulShutdown = async (signal) => {
+  logger.info(`${signal} received. Shutting down gracefully...`);
+
+  try {
+    if (serverInstance) {
+      await new Promise((resolve) => serverInstance.close(resolve));
+      logger.info('HTTP server closed');
+    }
+  } catch (error) {
+    logger.warn('Error while closing HTTP server', { error: error.message });
+  }
+
+  try {
+    if (redisClient?.isOpen) {
+      await redisClient.quit();
+      logger.info('Redis client disconnected');
+    }
+  } catch (error) {
+    logger.warn('Error while closing Redis client', { error: error.message });
+  }
+
+  try {
+    await sequelize.close();
+    logger.info('MySQL connection closed');
+  } catch (error) {
+    logger.warn('Error while closing MySQL connection', { error: error.message });
+  }
+
+  process.exit(0);
+};
+
 const startServer = async () => {
   try {
-    await connectDatabase();
     const preferredPort = Number(PORT) || 5000;
-    const { port } = await startListening(preferredPort);
+    const { server, port } = await startListening(preferredPort);
+    serverInstance = server;
     logger.info(`Server running on port ${port}`);
+
+    // Keep startup fast for container platforms; DB can come up shortly after boot.
+    void connectDatabaseWithRetry();
   } catch (error) {
     logger.error('Server failed to start.', { error: error.message });
     process.exit(1);
   }
 };
+
+process.on('SIGTERM', () => {
+  void gracefulShutdown('SIGTERM');
+});
+
+process.on('SIGINT', () => {
+  void gracefulShutdown('SIGINT');
+});
 
 // Avoid auto-start in test runs
 if (process.env.NODE_ENV !== 'test') {
