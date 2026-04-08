@@ -183,22 +183,7 @@ describe('Auth Routes', () => {
 
   beforeAll(async () => {
     try {
-      // Drop and recreate test database to ensure clean state
-      const tempSequelize = new Sequelize({
-        dialect: 'mysql',
-        host: process.env.MYSQL_HOST || 'localhost',
-        port: process.env.MYSQL_PORT || '3306',
-        username: process.env.MYSQL_USER || 'root',
-        password: process.env.MYSQL_PASSWORD || 'Root@123',
-        database: 'mysql', // Connect to mysql system database first
-        logging: false
-      });
-
-      await tempSequelize.query(`DROP DATABASE IF EXISTS property_app_test`);
-      await tempSequelize.query(`CREATE DATABASE property_app_test`);
-      await tempSequelize.close();
-
-      // Sync the test database
+      await sequelize.authenticate();
       await sequelize.sync({ force: true });
     } catch (error) {
       console.error('Test database setup failed:', error);
