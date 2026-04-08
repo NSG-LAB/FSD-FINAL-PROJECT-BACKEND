@@ -1,0 +1,17 @@
+{"error":"Access denied for user 'root'@'localhost' (using password: NO)","host":"localhost","level":"error","message":"MySQL connection failed","service":"property-api","timestamp":"2026-04-08 16:06:58"}
+{"error":"Access denied for user 'root'@'localhost' (using password: NO)","host":"localhost","level":"error","message":"MySQL connection failed","service":"property-api","timestamp":"2026-04-08 16:07:03"}
+{"error":"Access denied for user 'root'@'localhost' (using password: NO)","host":"localhost","level":"error","message":"MySQL connection failed","service":"property-api","timestamp":"2026-04-08 16:07:13"}
+{"error":"Access denied for user 'root'@'localhost' (using password: NO)","host":"localhost","level":"error","message":"MySQL connection failed","service":"property-api","timestamp":"2026-04-08 16:07:28"}
+{"error":"Access denied for user 'root'@'localhost' (using password: NO)","host":"localhost","level":"error","message":"MySQL connection failed","service":"property-api","timestamp":"2026-04-08 16:07:34"}
+{"error":"Deadlock found when trying to get lock; try restarting transaction","host":"localhost","level":"error","message":"MySQL connection failed","service":"property-api","timestamp":"2026-04-08 16:14:22"}
+{"error":"Deadlock found when trying to get lock; try restarting transaction","host":"localhost","level":"error","message":"MySQL connection failed","service":"property-api","timestamp":"2026-04-08 16:15:16"}
+{"error":"Too many keys specified; max 64 keys allowed","host":"localhost","level":"error","message":"MySQL connection failed","service":"property-api","timestamp":"2026-04-08 16:15:27"}
+{"error":"Too many keys specified; max 64 keys allowed","host":"localhost","level":"error","message":"MySQL connection failed","service":"property-api","timestamp":"2026-04-08 16:15:42"}
+{"error":"Too many keys specified; max 64 keys allowed","host":"localhost","level":"error","message":"MySQL connection failed","service":"property-api","timestamp":"2026-04-08 16:15:47"}
+{"error":"Too many keys specified; max 64 keys allowed","host":"localhost","level":"error","message":"MySQL connection failed","service":"property-api","timestamp":"2026-04-08 16:15:57"}
+{"error":"Too many keys specified; max 64 keys allowed","host":"localhost","level":"error","message":"MySQL connection failed","service":"property-api","timestamp":"2026-04-08 16:16:13"}
+{"error":"Too many keys specified; max 64 keys allowed","host":"localhost","level":"error","message":"MySQL connection failed","service":"property-api","timestamp":"2026-04-08 16:16:20"}
+{"error":"Too many keys specified; max 64 keys allowed","host":"localhost","level":"error","message":"MySQL connection failed","service":"property-api","timestamp":"2026-04-08 16:18:17"}
+{"error":"Too many keys specified; max 64 keys allowed","host":"localhost","level":"error","message":"MySQL connection failed","service":"property-api","timestamp":"2026-04-08 16:18:23"}
+{"error":"Too many keys specified; max 64 keys allowed","host":"localhost","level":"error","message":"MySQL connection failed","service":"property-api","timestamp":"2026-04-08 16:18:33"}
+{"error":"Too many keys specified; max 64 keys allowed","host":"localhost","level":"error","message":"MySQL connection failed","service":"property-api","timestamp":"2026-04-08 16:18:49"}

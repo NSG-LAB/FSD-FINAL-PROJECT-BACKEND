@@ -1,0 +1,236 @@
+{"level":"info","message":"All required environment variables are set","service":"property-api","timestamp":"2026-04-08 16:06:57"}
+{"level":"info","message":"Server running on port 5000","service":"property-api","timestamp":"2026-04-08 16:06:58"}
+{"database":"property_app","host":"localhost","level":"info","message":"Active DB target","port":3306,"service":"property-api","timestamp":"2026-04-08 16:06:58","username":"root"}
+{"level":"info","message":"Attempting to connect to MySQL...","service":"property-api","timestamp":"2026-04-08 16:06:58"}
+{"error":"Access denied for user 'root'@'localhost' (using password: NO)","host":"localhost","level":"error","message":"MySQL connection failed","service":"property-api","timestamp":"2026-04-08 16:06:58"}
+{"attempt":1,"error":"Access denied for user 'root'@'localhost' (using password: NO)","level":"warn","message":"Database init failed; retrying in background","retryInMs":5000,"service":"property-api","timestamp":"2026-04-08 16:06:58"}
+{"database":"property_app","host":"localhost","level":"info","message":"Active DB target","port":3306,"service":"property-api","timestamp":"2026-04-08 16:07:03","username":"root"}
+{"level":"info","message":"Attempting to connect to MySQL...","service":"property-api","timestamp":"2026-04-08 16:07:03"}
+{"error":"Access denied for user 'root'@'localhost' (using password: NO)","host":"localhost","level":"error","message":"MySQL connection failed","service":"property-api","timestamp":"2026-04-08 16:07:03"}
+{"attempt":2,"error":"Access denied for user 'root'@'localhost' (using password: NO)","level":"warn","message":"Database init failed; retrying in background","retryInMs":10000,"service":"property-api","timestamp":"2026-04-08 16:07:03"}
+{"database":"property_app","host":"localhost","level":"info","message":"Active DB target","port":3306,"service":"property-api","timestamp":"2026-04-08 16:07:13","username":"root"}
+{"level":"info","message":"Attempting to connect to MySQL...","service":"property-api","timestamp":"2026-04-08 16:07:13"}
+{"error":"Access denied for user 'root'@'localhost' (using password: NO)","host":"localhost","level":"error","message":"MySQL connection failed","service":"property-api","timestamp":"2026-04-08 16:07:13"}
+{"attempt":3,"error":"Access denied for user 'root'@'localhost' (using password: NO)","level":"warn","message":"Database init failed; retrying in background","retryInMs":15000,"service":"property-api","timestamp":"2026-04-08 16:07:13"}
+{"database":"property_app","host":"localhost","level":"info","message":"Active DB target","port":3306,"service":"property-api","timestamp":"2026-04-08 16:07:28","username":"root"}
+{"level":"info","message":"Attempting to connect to MySQL...","service":"property-api","timestamp":"2026-04-08 16:07:28"}
+{"error":"Access denied for user 'root'@'localhost' (using password: NO)","host":"localhost","level":"error","message":"MySQL connection failed","service":"property-api","timestamp":"2026-04-08 16:07:28"}
+{"attempt":4,"error":"Access denied for user 'root'@'localhost' (using password: NO)","level":"warn","message":"Database init failed; retrying in background","retryInMs":20000,"service":"property-api","timestamp":"2026-04-08 16:07:28"}
+{"level":"info","message":"All required environment variables are set","service":"property-api","timestamp":"2026-04-08 16:07:33"}
+{"level":"info","message":"Server running on port 5000","service":"property-api","timestamp":"2026-04-08 16:07:34"}
+{"database":"property_app","host":"localhost","level":"info","message":"Active DB target","port":3306,"service":"property-api","timestamp":"2026-04-08 16:07:34","username":"root"}
+{"level":"info","message":"Attempting to connect to MySQL...","service":"property-api","timestamp":"2026-04-08 16:07:34"}
+{"error":"Access denied for user 'root'@'localhost' (using password: NO)","host":"localhost","level":"error","message":"MySQL connection failed","service":"property-api","timestamp":"2026-04-08 16:07:34"}
+{"attempt":1,"error":"Access denied for user 'root'@'localhost' (using password: NO)","level":"warn","message":"Database init failed; retrying in background","retryInMs":5000,"service":"property-api","timestamp":"2026-04-08 16:07:34"}
+{"level":"info","message":"All required environment variables are set","service":"property-api","timestamp":"2026-04-08 16:08:55"}
+{"level":"info","message":"Server running on port 5000","service":"property-api","timestamp":"2026-04-08 16:08:56"}
+{"database":"property_app","host":"localhost","level":"info","message":"Active DB target","port":3306,"service":"property-api","timestamp":"2026-04-08 16:08:56","username":"root"}
+{"level":"info","message":"Attempting to connect to MySQL...","service":"property-api","timestamp":"2026-04-08 16:08:56"}
+{"level":"info","message":"Database ensured","service":"property-api","timestamp":"2026-04-08 16:08:56"}
+{"level":"info","message":"MySQL connection established","service":"property-api","timestamp":"2026-04-08 16:08:56"}
+{"level":"info","message":"Models synchronized successfully","service":"property-api","timestamp":"2026-04-08 16:08:59"}
+{"level":"info","message":"Demo account already exists: admin@demo.com","service":"property-api","timestamp":"2026-04-08 16:08:59"}
+{"level":"info","message":"Demo account already exists: user@demo.com","service":"property-api","timestamp":"2026-04-08 16:08:59"}
+{"city":"tenali","email":"trao@gmail.com","firstName":"t","lastName":"rao","level":"info","message":"Registration request:","service":"property-api","state":"ANDRAPRADESH","timestamp":"2026-04-08 16:11:19"}
+{"level":"info","message":"All required environment variables are set","service":"property-api","timestamp":"2026-04-08 16:14:18"}
+{"level":"info","message":"Server running on port 5000","service":"property-api","timestamp":"2026-04-08 16:14:19"}
+{"database":"property_app","host":"localhost","level":"info","message":"Active DB target","port":3306,"service":"property-api","timestamp":"2026-04-08 16:14:19","username":"root"}
+{"level":"info","message":"Attempting to connect to MySQL...","service":"property-api","timestamp":"2026-04-08 16:14:19"}
+{"level":"info","message":"Database ensured","service":"property-api","timestamp":"2026-04-08 16:14:19"}
+{"level":"info","message":"MySQL connection established","service":"property-api","timestamp":"2026-04-08 16:14:19"}
+{"level":"info","message":"All required environment variables are set","service":"property-api","timestamp":"2026-04-08 16:14:18"}
+{"level":"warn","message":"Port 5000 is in use. Retrying on port 5001...","service":"property-api","timestamp":"2026-04-08 16:14:19"}
+{"level":"info","message":"Server running on port 5001","service":"property-api","timestamp":"2026-04-08 16:14:19"}
+{"database":"property_app","host":"localhost","level":"info","message":"Active DB target","port":3306,"service":"property-api","timestamp":"2026-04-08 16:14:19","username":"root"}
+{"level":"info","message":"Attempting to connect to MySQL...","service":"property-api","timestamp":"2026-04-08 16:14:19"}
+{"level":"info","message":"Database ensured","service":"property-api","timestamp":"2026-04-08 16:14:19"}
+{"level":"info","message":"MySQL connection established","service":"property-api","timestamp":"2026-04-08 16:14:19"}
+{"error":"Deadlock found when trying to get lock; try restarting transaction","host":"localhost","level":"error","message":"MySQL connection failed","service":"property-api","timestamp":"2026-04-08 16:14:22"}
+{"attempt":1,"error":"Deadlock found when trying to get lock; try restarting transaction","level":"warn","message":"Database init failed; retrying in background","retryInMs":5000,"service":"property-api","timestamp":"2026-04-08 16:14:22"}
+{"level":"info","message":"All required environment variables are set","service":"property-api","timestamp":"2026-04-08 16:14:23"}
+{"level":"info","message":"Server running on port 5000","service":"property-api","timestamp":"2026-04-08 16:14:24"}
+{"database":"property_app","host":"localhost","level":"info","message":"Active DB target","port":3306,"service":"property-api","timestamp":"2026-04-08 16:14:24","username":"root"}
+{"level":"info","message":"Attempting to connect to MySQL...","service":"property-api","timestamp":"2026-04-08 16:14:24"}
+{"level":"info","message":"All required environment variables are set","service":"property-api","timestamp":"2026-04-08 16:14:23"}
+{"level":"warn","message":"Port 5000 is in use. Retrying on port 5001...","service":"property-api","timestamp":"2026-04-08 16:14:24"}
+{"level":"info","message":"Server running on port 5001","service":"property-api","timestamp":"2026-04-08 16:14:24"}
+{"database":"property_app","host":"localhost","level":"info","message":"Active DB target","port":3306,"service":"property-api","timestamp":"2026-04-08 16:14:24","username":"root"}
+{"level":"info","message":"Attempting to connect to MySQL...","service":"property-api","timestamp":"2026-04-08 16:14:24"}
+{"level":"info","message":"Database ensured","service":"property-api","timestamp":"2026-04-08 16:14:24"}
+{"level":"info","message":"Database ensured","service":"property-api","timestamp":"2026-04-08 16:14:24"}
+{"level":"info","message":"MySQL connection established","service":"property-api","timestamp":"2026-04-08 16:14:24"}
+{"level":"info","message":"MySQL connection established","service":"property-api","timestamp":"2026-04-08 16:14:24"}
+{"level":"info","message":"Models synchronized successfully","service":"property-api","timestamp":"2026-04-08 16:14:30"}
+{"level":"info","message":"Demo account already exists: admin@demo.com","service":"property-api","timestamp":"2026-04-08 16:14:30"}
+{"level":"info","message":"Demo account already exists: user@demo.com","service":"property-api","timestamp":"2026-04-08 16:14:30"}
+{"level":"info","message":"Models synchronized successfully","service":"property-api","timestamp":"2026-04-08 16:14:30"}
+{"level":"info","message":"Demo account already exists: admin@demo.com","service":"property-api","timestamp":"2026-04-08 16:14:30"}
+{"level":"info","message":"Demo account already exists: user@demo.com","service":"property-api","timestamp":"2026-04-08 16:14:30"}
+{"level":"info","message":"All required environment variables are set","service":"property-api","timestamp":"2026-04-08 16:14:41"}
+{"level":"info","message":"Server running on port 5000","service":"property-api","timestamp":"2026-04-08 16:14:42"}
+{"database":"property_app","host":"localhost","level":"info","message":"Active DB target","port":3306,"service":"property-api","timestamp":"2026-04-08 16:14:42","username":"root"}
+{"level":"info","message":"Attempting to connect to MySQL...","service":"property-api","timestamp":"2026-04-08 16:14:42"}
+{"level":"info","message":"All required environment variables are set","service":"property-api","timestamp":"2026-04-08 16:14:41"}
+{"level":"warn","message":"Port 5000 is in use. Retrying on port 5001...","service":"property-api","timestamp":"2026-04-08 16:14:42"}
+{"level":"info","message":"Server running on port 5001","service":"property-api","timestamp":"2026-04-08 16:14:42"}
+{"database":"property_app","host":"localhost","level":"info","message":"Active DB target","port":3306,"service":"property-api","timestamp":"2026-04-08 16:14:42","username":"root"}
+{"level":"info","message":"Attempting to connect to MySQL...","service":"property-api","timestamp":"2026-04-08 16:14:42"}
+{"level":"info","message":"Database ensured","service":"property-api","timestamp":"2026-04-08 16:14:42"}
+{"level":"info","message":"Database ensured","service":"property-api","timestamp":"2026-04-08 16:14:42"}
+{"level":"info","message":"MySQL connection established","service":"property-api","timestamp":"2026-04-08 16:14:42"}
+{"level":"info","message":"MySQL connection established","service":"property-api","timestamp":"2026-04-08 16:14:42"}
+{"level":"info","message":"All required environment variables are set","service":"property-api","timestamp":"2026-04-08 16:14:45"}
+{"level":"info","message":"Server running on port 5000","service":"property-api","timestamp":"2026-04-08 16:14:46"}
+{"database":"property_app","host":"localhost","level":"info","message":"Active DB target","port":3306,"service":"property-api","timestamp":"2026-04-08 16:14:46","username":"root"}
+{"level":"info","message":"Attempting to connect to MySQL...","service":"property-api","timestamp":"2026-04-08 16:14:46"}
+{"level":"info","message":"All required environment variables are set","service":"property-api","timestamp":"2026-04-08 16:14:45"}
+{"level":"info","message":"Database ensured","service":"property-api","timestamp":"2026-04-08 16:14:46"}
+{"level":"warn","message":"Port 5000 is in use. Retrying on port 5001...","service":"property-api","timestamp":"2026-04-08 16:14:46"}
+{"level":"info","message":"Server running on port 5001","service":"property-api","timestamp":"2026-04-08 16:14:46"}
+{"database":"property_app","host":"localhost","level":"info","message":"Active DB target","port":3306,"service":"property-api","timestamp":"2026-04-08 16:14:46","username":"root"}
+{"level":"info","message":"Attempting to connect to MySQL...","service":"property-api","timestamp":"2026-04-08 16:14:46"}
+{"level":"info","message":"Database ensured","service":"property-api","timestamp":"2026-04-08 16:14:46"}
+{"level":"info","message":"MySQL connection established","service":"property-api","timestamp":"2026-04-08 16:14:46"}
+{"level":"info","message":"MySQL connection established","service":"property-api","timestamp":"2026-04-08 16:14:46"}
+{"level":"info","message":"Models synchronized successfully","service":"property-api","timestamp":"2026-04-08 16:14:53"}
+{"level":"info","message":"Demo account already exists: admin@demo.com","service":"property-api","timestamp":"2026-04-08 16:14:53"}
+{"level":"info","message":"Demo account already exists: user@demo.com","service":"property-api","timestamp":"2026-04-08 16:14:53"}
+{"level":"info","message":"Models synchronized successfully","service":"property-api","timestamp":"2026-04-08 16:14:53"}
+{"level":"info","message":"Demo account already exists: admin@demo.com","service":"property-api","timestamp":"2026-04-08 16:14:53"}
+{"level":"info","message":"Demo account already exists: user@demo.com","service":"property-api","timestamp":"2026-04-08 16:14:53"}
+{"level":"info","message":"All required environment variables are set","service":"property-api","timestamp":"2026-04-08 16:15:00"}
+{"level":"warn","message":"Port 5000 is in use. Retrying on port 5001...","service":"property-api","timestamp":"2026-04-08 16:15:01"}
+{"level":"warn","message":"Port 5001 is in use. Retrying on port 5002...","service":"property-api","timestamp":"2026-04-08 16:15:01"}
+{"level":"info","message":"Server running on port 5002","service":"property-api","timestamp":"2026-04-08 16:15:01"}
+{"database":"property_app","host":"localhost","level":"info","message":"Active DB target","port":3306,"service":"property-api","timestamp":"2026-04-08 16:15:01","username":"root"}
+{"level":"info","message":"Attempting to connect to MySQL...","service":"property-api","timestamp":"2026-04-08 16:15:01"}
+{"level":"info","message":"Database ensured","service":"property-api","timestamp":"2026-04-08 16:15:01"}
+{"level":"info","message":"MySQL connection established","service":"property-api","timestamp":"2026-04-08 16:15:01"}
+{"level":"info","message":"Models synchronized successfully","service":"property-api","timestamp":"2026-04-08 16:15:05"}
+{"level":"info","message":"Demo account already exists: admin@demo.com","service":"property-api","timestamp":"2026-04-08 16:15:05"}
+{"level":"info","message":"Demo account already exists: user@demo.com","service":"property-api","timestamp":"2026-04-08 16:15:05"}
+{"level":"info","message":"All required environment variables are set","service":"property-api","timestamp":"2026-04-08 16:15:08"}
+{"level":"info","message":"Server running on port 5000","service":"property-api","timestamp":"2026-04-08 16:15:10"}
+{"database":"property_app","host":"localhost","level":"info","message":"Active DB target","port":3306,"service":"property-api","timestamp":"2026-04-08 16:15:10","username":"root"}
+{"level":"info","message":"Attempting to connect to MySQL...","service":"property-api","timestamp":"2026-04-08 16:15:10"}
+{"level":"info","message":"All required environment variables are set","service":"property-api","timestamp":"2026-04-08 16:15:08"}
+{"level":"info","message":"All required environment variables are set","service":"property-api","timestamp":"2026-04-08 16:15:08"}
+{"level":"warn","message":"Port 5000 is in use. Retrying on port 5001...","service":"property-api","timestamp":"2026-04-08 16:15:10"}
+{"level":"info","message":"Server running on port 5001","service":"property-api","timestamp":"2026-04-08 16:15:10"}
+{"database":"property_app","host":"localhost","level":"info","message":"Active DB target","port":3306,"service":"property-api","timestamp":"2026-04-08 16:15:10","username":"root"}
+{"level":"info","message":"Attempting to connect to MySQL...","service":"property-api","timestamp":"2026-04-08 16:15:10"}
+{"level":"info","message":"Database ensured","service":"property-api","timestamp":"2026-04-08 16:15:10"}
+{"level":"warn","message":"Port 5000 is in use. Retrying on port 5001...","service":"property-api","timestamp":"2026-04-08 16:15:10"}
+{"level":"warn","message":"Port 5001 is in use. Retrying on port 5002...","service":"property-api","timestamp":"2026-04-08 16:15:10"}
+{"level":"info","message":"Server running on port 5002","service":"property-api","timestamp":"2026-04-08 16:15:10"}
+{"database":"property_app","host":"localhost","level":"info","message":"Active DB target","port":3306,"service":"property-api","timestamp":"2026-04-08 16:15:10","username":"root"}
+{"level":"info","message":"Attempting to connect to MySQL...","service":"property-api","timestamp":"2026-04-08 16:15:10"}
+{"level":"info","message":"Database ensured","service":"property-api","timestamp":"2026-04-08 16:15:10"}
+{"level":"info","message":"Database ensured","service":"property-api","timestamp":"2026-04-08 16:15:10"}
+{"level":"info","message":"MySQL connection established","service":"property-api","timestamp":"2026-04-08 16:15:10"}
+{"level":"info","message":"MySQL connection established","service":"property-api","timestamp":"2026-04-08 16:15:10"}
+{"level":"info","message":"MySQL connection established","service":"property-api","timestamp":"2026-04-08 16:15:10"}
+{"error":"Deadlock found when trying to get lock; try restarting transaction","host":"localhost","level":"error","message":"MySQL connection failed","service":"property-api","timestamp":"2026-04-08 16:15:16"}
+{"attempt":1,"error":"Deadlock found when trying to get lock; try restarting transaction","level":"warn","message":"Database init failed; retrying in background","retryInMs":5000,"service":"property-api","timestamp":"2026-04-08 16:15:16"}
+{"level":"info","message":"Models synchronized successfully","service":"property-api","timestamp":"2026-04-08 16:15:19"}
+{"level":"info","message":"Demo account already exists: admin@demo.com","service":"property-api","timestamp":"2026-04-08 16:15:19"}
+{"level":"info","message":"Demo account already exists: user@demo.com","service":"property-api","timestamp":"2026-04-08 16:15:19"}
+{"level":"info","message":"Models synchronized successfully","service":"property-api","timestamp":"2026-04-08 16:15:19"}
+{"level":"info","message":"Demo account already exists: admin@demo.com","service":"property-api","timestamp":"2026-04-08 16:15:19"}
+{"level":"info","message":"Demo account already exists: user@demo.com","service":"property-api","timestamp":"2026-04-08 16:15:19"}
+{"database":"property_app","host":"localhost","level":"info","message":"Active DB target","port":3306,"service":"property-api","timestamp":"2026-04-08 16:15:21","username":"root"}
+{"level":"info","message":"Attempting to connect to MySQL...","service":"property-api","timestamp":"2026-04-08 16:15:21"}
+{"level":"info","message":"Database ensured","service":"property-api","timestamp":"2026-04-08 16:15:21"}
+{"level":"info","message":"MySQL connection established","service":"property-api","timestamp":"2026-04-08 16:15:21"}
+{"level":"info","message":"Models synchronized successfully","service":"property-api","timestamp":"2026-04-08 16:15:25"}
+{"level":"info","message":"Demo account already exists: admin@demo.com","service":"property-api","timestamp":"2026-04-08 16:15:25"}
+{"level":"info","message":"Demo account already exists: user@demo.com","service":"property-api","timestamp":"2026-04-08 16:15:25"}
+{"level":"info","message":"All required environment variables are set","service":"property-api","timestamp":"2026-04-08 16:15:26"}
+{"level":"warn","message":"Port 5000 is in use. Retrying on port 5001...","service":"property-api","timestamp":"2026-04-08 16:15:27"}
+{"level":"warn","message":"Port 5001 is in use. Retrying on port 5002...","service":"property-api","timestamp":"2026-04-08 16:15:27"}
+{"level":"info","message":"Server running on port 5002","service":"property-api","timestamp":"2026-04-08 16:15:27"}
+{"database":"property_app","host":"localhost","level":"info","message":"Active DB target","port":3306,"service":"property-api","timestamp":"2026-04-08 16:15:27","username":"root"}
+{"level":"info","message":"Attempting to connect to MySQL...","service":"property-api","timestamp":"2026-04-08 16:15:27"}
+{"level":"info","message":"Database ensured","service":"property-api","timestamp":"2026-04-08 16:15:27"}
+{"level":"info","message":"MySQL connection established","service":"property-api","timestamp":"2026-04-08 16:15:27"}
+{"error":"Too many keys specified; max 64 keys allowed","host":"localhost","level":"error","message":"MySQL connection failed","service":"property-api","timestamp":"2026-04-08 16:15:27"}
+{"attempt":1,"error":"Too many keys specified; max 64 keys allowed","level":"warn","message":"Database init failed; retrying in background","retryInMs":5000,"service":"property-api","timestamp":"2026-04-08 16:15:27"}
+{"level":"info","message":"All required environment variables are set","service":"property-api","timestamp":"2026-04-08 16:15:40"}
+{"level":"warn","message":"Port 5000 is in use. Retrying on port 5001...","service":"property-api","timestamp":"2026-04-08 16:15:41"}
+{"level":"warn","message":"Port 5001 is in use. Retrying on port 5002...","service":"property-api","timestamp":"2026-04-08 16:15:41"}
+{"level":"info","message":"Server running on port 5002","service":"property-api","timestamp":"2026-04-08 16:15:41"}
+{"database":"property_app","host":"localhost","level":"info","message":"Active DB target","port":3306,"service":"property-api","timestamp":"2026-04-08 16:15:41","username":"root"}
+{"level":"info","message":"Attempting to connect to MySQL...","service":"property-api","timestamp":"2026-04-08 16:15:41"}
+{"level":"info","message":"Database ensured","service":"property-api","timestamp":"2026-04-08 16:15:41"}
+{"level":"info","message":"MySQL connection established","service":"property-api","timestamp":"2026-04-08 16:15:41"}
+{"error":"Too many keys specified; max 64 keys allowed","host":"localhost","level":"error","message":"MySQL connection failed","service":"property-api","timestamp":"2026-04-08 16:15:42"}
+{"attempt":1,"error":"Too many keys specified; max 64 keys allowed","level":"warn","message":"Database init failed; retrying in background","retryInMs":5000,"service":"property-api","timestamp":"2026-04-08 16:15:42"}
+{"database":"property_app","host":"localhost","level":"info","message":"Active DB target","port":3306,"service":"property-api","timestamp":"2026-04-08 16:15:47","username":"root"}
+{"level":"info","message":"Attempting to connect to MySQL...","service":"property-api","timestamp":"2026-04-08 16:15:47"}
+{"level":"info","message":"Database ensured","service":"property-api","timestamp":"2026-04-08 16:15:47"}
+{"level":"info","message":"MySQL connection established","service":"property-api","timestamp":"2026-04-08 16:15:47"}
+{"error":"Too many keys specified; max 64 keys allowed","host":"localhost","level":"error","message":"MySQL connection failed","service":"property-api","timestamp":"2026-04-08 16:15:47"}
+{"attempt":2,"error":"Too many keys specified; max 64 keys allowed","level":"warn","message":"Database init failed; retrying in background","retryInMs":10000,"service":"property-api","timestamp":"2026-04-08 16:15:47"}
+{"database":"property_app","host":"localhost","level":"info","message":"Active DB target","port":3306,"service":"property-api","timestamp":"2026-04-08 16:15:57","username":"root"}
+{"level":"info","message":"Attempting to connect to MySQL...","service":"property-api","timestamp":"2026-04-08 16:15:57"}
+{"level":"info","message":"Database ensured","service":"property-api","timestamp":"2026-04-08 16:15:57"}
+{"level":"info","message":"MySQL connection established","service":"property-api","timestamp":"2026-04-08 16:15:57"}
+{"error":"Too many keys specified; max 64 keys allowed","host":"localhost","level":"error","message":"MySQL connection failed","service":"property-api","timestamp":"2026-04-08 16:15:57"}
+{"attempt":3,"error":"Too many keys specified; max 64 keys allowed","level":"warn","message":"Database init failed; retrying in background","retryInMs":15000,"service":"property-api","timestamp":"2026-04-08 16:15:57"}
+{"database":"property_app","host":"localhost","level":"info","message":"Active DB target","port":3306,"service":"property-api","timestamp":"2026-04-08 16:16:12","username":"root"}
+{"level":"info","message":"Attempting to connect to MySQL...","service":"property-api","timestamp":"2026-04-08 16:16:12"}
+{"level":"info","message":"Database ensured","service":"property-api","timestamp":"2026-04-08 16:16:12"}
+{"level":"info","message":"MySQL connection established","service":"property-api","timestamp":"2026-04-08 16:16:12"}
+{"error":"Too many keys specified; max 64 keys allowed","host":"localhost","level":"error","message":"MySQL connection failed","service":"property-api","timestamp":"2026-04-08 16:16:13"}
+{"attempt":4,"error":"Too many keys specified; max 64 keys allowed","level":"warn","message":"Database init failed; retrying in background","retryInMs":20000,"service":"property-api","timestamp":"2026-04-08 16:16:13"}
+{"level":"info","message":"All required environment variables are set","service":"property-api","timestamp":"2026-04-08 16:16:19"}
+{"level":"warn","message":"Port 5000 is in use. Retrying on port 5001...","service":"property-api","timestamp":"2026-04-08 16:16:20"}
+{"level":"warn","message":"Port 5001 is in use. Retrying on port 5002...","service":"property-api","timestamp":"2026-04-08 16:16:20"}
+{"level":"info","message":"Server running on port 5002","service":"property-api","timestamp":"2026-04-08 16:16:20"}
+{"database":"property_app","host":"localhost","level":"info","message":"Active DB target","port":3306,"service":"property-api","timestamp":"2026-04-08 16:16:20","username":"root"}
+{"level":"info","message":"Attempting to connect to MySQL...","service":"property-api","timestamp":"2026-04-08 16:16:20"}
+{"level":"info","message":"Database ensured","service":"property-api","timestamp":"2026-04-08 16:16:20"}
+{"level":"info","message":"MySQL connection established","service":"property-api","timestamp":"2026-04-08 16:16:20"}
+{"error":"Too many keys specified; max 64 keys allowed","host":"localhost","level":"error","message":"MySQL connection failed","service":"property-api","timestamp":"2026-04-08 16:16:20"}
+{"attempt":1,"error":"Too many keys specified; max 64 keys allowed","level":"warn","message":"Database init failed; retrying in background","retryInMs":5000,"service":"property-api","timestamp":"2026-04-08 16:16:20"}
+{"level":"info","message":"All required environment variables are set","service":"property-api","timestamp":"2026-04-08 16:18:16"}
+{"level":"warn","message":"Port 5000 is in use. Retrying on port 5001...","service":"property-api","timestamp":"2026-04-08 16:18:17"}
+{"level":"warn","message":"Port 5001 is in use. Retrying on port 5002...","service":"property-api","timestamp":"2026-04-08 16:18:17"}
+{"level":"info","message":"Server running on port 5002","service":"property-api","timestamp":"2026-04-08 16:18:17"}
+{"database":"property_app","host":"localhost","level":"info","message":"Active DB target","port":3306,"service":"property-api","timestamp":"2026-04-08 16:18:17","username":"root"}
+{"level":"info","message":"Attempting to connect to MySQL...","service":"property-api","timestamp":"2026-04-08 16:18:17"}
+{"level":"info","message":"Database ensured","service":"property-api","timestamp":"2026-04-08 16:18:17"}
+{"level":"info","message":"MySQL connection established","service":"property-api","timestamp":"2026-04-08 16:18:17"}
+{"error":"Too many keys specified; max 64 keys allowed","host":"localhost","level":"error","message":"MySQL connection failed","service":"property-api","timestamp":"2026-04-08 16:18:17"}
+{"attempt":1,"error":"Too many keys specified; max 64 keys allowed","level":"warn","message":"Database init failed; retrying in background","retryInMs":5000,"service":"property-api","timestamp":"2026-04-08 16:18:17"}
+{"database":"property_app","host":"localhost","level":"info","message":"Active DB target","port":3306,"service":"property-api","timestamp":"2026-04-08 16:18:22","username":"root"}
+{"level":"info","message":"Attempting to connect to MySQL...","service":"property-api","timestamp":"2026-04-08 16:18:22"}
+{"level":"info","message":"Database ensured","service":"property-api","timestamp":"2026-04-08 16:18:22"}
+{"level":"info","message":"MySQL connection established","service":"property-api","timestamp":"2026-04-08 16:18:22"}
+{"error":"Too many keys specified; max 64 keys allowed","host":"localhost","level":"error","message":"MySQL connection failed","service":"property-api","timestamp":"2026-04-08 16:18:23"}
+{"attempt":2,"error":"Too many keys specified; max 64 keys allowed","level":"warn","message":"Database init failed; retrying in background","retryInMs":10000,"service":"property-api","timestamp":"2026-04-08 16:18:23"}
+{"database":"property_app","host":"localhost","level":"info","message":"Active DB target","port":3306,"service":"property-api","timestamp":"2026-04-08 16:18:33","username":"root"}
+{"level":"info","message":"Attempting to connect to MySQL...","service":"property-api","timestamp":"2026-04-08 16:18:33"}
+{"level":"info","message":"Database ensured","service":"property-api","timestamp":"2026-04-08 16:18:33"}
+{"level":"info","message":"MySQL connection established","service":"property-api","timestamp":"2026-04-08 16:18:33"}
+{"error":"Too many keys specified; max 64 keys allowed","host":"localhost","level":"error","message":"MySQL connection failed","service":"property-api","timestamp":"2026-04-08 16:18:33"}
+{"attempt":3,"error":"Too many keys specified; max 64 keys allowed","level":"warn","message":"Database init failed; retrying in background","retryInMs":15000,"service":"property-api","timestamp":"2026-04-08 16:18:33"}
+{"database":"property_app","host":"localhost","level":"info","message":"Active DB target","port":3306,"service":"property-api","timestamp":"2026-04-08 16:18:48","username":"root"}
+{"level":"info","message":"Attempting to connect to MySQL...","service":"property-api","timestamp":"2026-04-08 16:18:48"}
+{"level":"info","message":"Database ensured","service":"property-api","timestamp":"2026-04-08 16:18:48"}
+{"level":"info","message":"MySQL connection established","service":"property-api","timestamp":"2026-04-08 16:18:48"}
+{"error":"Too many keys specified; max 64 keys allowed","host":"localhost","level":"error","message":"MySQL connection failed","service":"property-api","timestamp":"2026-04-08 16:18:49"}
+{"attempt":4,"error":"Too many keys specified; max 64 keys allowed","level":"warn","message":"Database init failed; retrying in background","retryInMs":20000,"service":"property-api","timestamp":"2026-04-08 16:18:49"}
+{"level":"info","message":"All required environment variables are set","service":"property-api","timestamp":"2026-04-08 16:19:13"}
+{"level":"info","message":"Server running on port 5000","service":"property-api","timestamp":"2026-04-08 16:19:14"}
+{"database":"property_app","host":"localhost","level":"info","message":"Active DB target","port":3306,"service":"property-api","timestamp":"2026-04-08 16:19:14","username":"root"}
+{"level":"info","message":"Attempting to connect to MySQL...","service":"property-api","timestamp":"2026-04-08 16:19:14"}
+{"level":"info","message":"Database ensured","service":"property-api","timestamp":"2026-04-08 16:19:14"}
+{"level":"info","message":"MySQL connection established","service":"property-api","timestamp":"2026-04-08 16:19:14"}
+{"level":"info","message":"Models synchronized successfully","service":"property-api","timestamp":"2026-04-08 16:19:14"}
+{"level":"info","message":"Demo account already exists: admin@demo.com","service":"property-api","timestamp":"2026-04-08 16:19:14"}
+{"level":"info","message":"Demo account already exists: user@demo.com","service":"property-api","timestamp":"2026-04-08 16:19:14"}
+{"city":"Chennai","email":"isouser1_1775645423@example.com","firstName":"IsoOne","lastName":"User","level":"info","message":"Registration request:","service":"property-api","state":"Tamil Nadu","timestamp":"2026-04-08 16:20:24"}
+{"city":"Chennai","email":"isouser2_1775645423@example.com","firstName":"IsoTwo","lastName":"User","level":"info","message":"Registration request:","service":"property-api","state":"Tamil Nadu","timestamp":"2026-04-08 16:20:24"}
+{"city":"Chennai","email":"isouser1_1775645453@example.com","firstName":"IsoOne","lastName":"User","level":"info","message":"Registration request:","service":"property-api","state":"Tamil Nadu","timestamp":"2026-04-08 16:20:53"}
+{"city":"Chennai","email":"isouser2_1775645453@example.com","firstName":"IsoTwo","lastName":"User","level":"info","message":"Registration request:","service":"property-api","state":"Tamil Nadu","timestamp":"2026-04-08 16:20:53"}

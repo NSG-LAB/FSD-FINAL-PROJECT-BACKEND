@@ -2,15 +2,36 @@ const express = require('express');
 const router = express.Router();
 const fs = require('fs');
 const path = require('path');
+const { authenticateToken } = require('../middleware/auth');
+const enhancementChecklistService = require('../services/enhancementChecklistService');
+const { EnhancementChecklist, Property } = require('../models');
+const upload = require('../middleware/uploadChecklistPhoto');
+
+const isAdmin = (req) => req.user?.role === 'admin';
+
+const canAccessItem = (req, item) => item && (item.userId === req.user.userId || isAdmin(req));
+
+const canAccessProperty = async (req, propertyId) => {
+  if (isAdmin(req)) {
+    return true;
+  }
+
+  const property = await Property.findByPk(propertyId, { attributes: ['id', 'userId'] });
+  return Boolean(property && property.userId === req.user.userId);
+};
 
 // Delete a specific uploaded file from a checklist item
-router.delete('/file/:itemId', async (req, res) => {
+router.delete('/file/:itemId', authenticateToken, async (req, res) => {
   try {
     const { itemId } = req.params;
     const { url } = req.body;
     if (!url) return res.status(400).json({ error: 'No file URL provided' });
     const item = await EnhancementChecklist.findByPk(itemId);
     if (!item) return res.status(404).json({ error: 'Checklist item not found' });
+    if (!canAccessItem(req, item)) {
+      return res.status(403).json({ error: 'Not authorized to modify this checklist item' });
+    }
+
     const updatedUrls = (item.attachmentUrls || []).filter(u => u !== url);
     await item.update({ attachmentUrls: updatedUrls });
     // Remove file from disk if local
@@ -23,11 +44,9 @@ router.delete('/file/:itemId', async (req, res) => {
     res.status(400).json({ error: err.message });
   }
 });
-const enhancementChecklistService = require('../services/enhancementChecklistService');
-const { EnhancementChecklist } = require('../models');
-const upload = require('../middleware/uploadChecklistPhoto');
+
 // Upload photo(s) for a checklist item
-router.post('/upload/:id', upload.array('photos', 5), async (req, res) => {
+router.post('/upload/:id', authenticateToken, upload.array('photos', 5), async (req, res) => {
   try {
     const { id } = req.params;
     const files = req.files;
@@ -37,6 +56,10 @@ router.post('/upload/:id', upload.array('photos', 5), async (req, res) => {
     // Get current item
     const item = await EnhancementChecklist.findByPk(id);
     if (!item) return res.status(404).json({ error: 'Checklist item not found' });
+    if (!canAccessItem(req, item)) {
+      return res.status(403).json({ error: 'Not authorized to modify this checklist item' });
+    }
+
     // Add new file URLs to attachmentUrls
     const newUrls = files.map(f => `/uploads/checklist/${f.filename}`);
     const updatedUrls = Array.isArray(item.attachmentUrls) ? [...item.attachmentUrls, ...newUrls] : newUrls;
@@ -48,9 +71,20 @@ router.post('/upload/:id', upload.array('photos', 5), async (req, res) => {
 });
 
 // Create a checklist item
-router.post('/', async (req, res) => {
+router.post('/', authenticateToken, async (req, res) => {
   try {
-    const item = await enhancementChecklistService.createChecklistItem(req.body);
+    const { propertyId } = req.body;
+    const hasAccess = await canAccessProperty(req, propertyId);
+    if (!hasAccess) {
+      return res.status(403).json({ error: 'Not authorized to create checklist item for this property' });
+    }
+
+    const payload = {
+      ...req.body,
+      userId: isAdmin(req) && req.body.userId ? req.body.userId : req.user.userId,
+    };
+
+    const item = await enhancementChecklistService.createChecklistItem(payload);
     res.status(201).json(item);
   } catch (err) {
     res.status(400).json({ error: err.message });
@@ -58,10 +92,19 @@ router.post('/', async (req, res) => {
 });
 
 // Get checklist items for a property and type (before/after)
-router.get('/:propertyId/:type', async (req, res) => {
+router.get('/:propertyId/:type', authenticateToken, async (req, res) => {
   try {
     const { propertyId, type } = req.params;
-    const items = await enhancementChecklistService.getChecklistItems(propertyId, type);
+    const hasAccess = await canAccessProperty(req, propertyId);
+    if (!hasAccess) {
+      return res.status(403).json({ error: 'Not authorized to view checklist items for this property' });
+    }
+
+    const items = await enhancementChecklistService.getChecklistItems(
+      propertyId,
+      type,
+      isAdmin(req) ? {} : { userId: req.user.userId }
+    );
     res.json(items);
   } catch (err) {
     res.status(400).json({ error: err.message });
@@ -69,9 +112,17 @@ router.get('/:propertyId/:type', async (req, res) => {
 });
 
 // Update a checklist item
-router.put('/:id', async (req, res) => {
+router.put('/:id', authenticateToken, async (req, res) => {
   try {
     const { id } = req.params;
+    const existingItem = await EnhancementChecklist.findByPk(id);
+    if (!existingItem) {
+      return res.status(404).json({ error: 'Checklist item not found' });
+    }
+    if (!canAccessItem(req, existingItem)) {
+      return res.status(403).json({ error: 'Not authorized to update this checklist item' });
+    }
+
     await enhancementChecklistService.updateChecklistItem(id, req.body);
     const updated = await EnhancementChecklist.findByPk(id);
     res.json(updated);
@@ -81,9 +132,17 @@ router.put('/:id', async (req, res) => {
 });
 
 // Delete a checklist item
-router.delete('/:id', async (req, res) => {
+router.delete('/:id', authenticateToken, async (req, res) => {
   try {
     const { id } = req.params;
+    const existingItem = await EnhancementChecklist.findByPk(id);
+    if (!existingItem) {
+      return res.status(404).json({ error: 'Checklist item not found' });
+    }
+    if (!canAccessItem(req, existingItem)) {
+      return res.status(403).json({ error: 'Not authorized to delete this checklist item' });
+    }
+
     await enhancementChecklistService.deleteChecklistItem(id);
     res.status(204).end();
   } catch (err) {

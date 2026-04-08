@@ -35,9 +35,10 @@ router.post('/upload-image', authenticateToken, upload.single('image'), (req, re
 });
 
 // Export properties as CSV
-router.get('/export/csv', async (req, res) => {
+router.get('/export/csv', authenticateToken, async (req, res) => {
   try {
-    const properties = await Property.findAll();
+    const whereClause = req.user.role === 'admin' ? {} : { userId: req.user.userId };
+    const properties = await Property.findAll({ where: whereClause });
     const fields = [
       'id', 'userId', 'title', 'description', 'propertyType', 'age', 'builUpArea',
       'bedrooms', 'bathrooms', 'location', 'condition', 'currentValue', 'features',
@@ -84,12 +85,13 @@ router.post('/', authenticateToken, propertyRules.create, handleValidationErrors
 });
 
 // Get all properties
-router.get('/', async (req, res) => {
+router.get('/', authenticateToken, async (req, res) => {
   try {
     const {
       city,
       propertyType,
       status,
+      userId,
       q,
       limit = '10',
       offset = '0',
@@ -121,6 +123,13 @@ router.get('/', async (req, res) => {
         { description: { [Op.like]: `%${q}%` } }
       ];
     }
+
+    if (req.user.role !== 'admin') {
+      whereClause.userId = req.user.userId;
+    } else if (userId) {
+      whereClause.userId = userId;
+    }
+
     if (jsonFilters.length) {
       whereClause[Op.and] = jsonFilters;
     }
@@ -151,7 +160,7 @@ router.get('/', async (req, res) => {
 });
 
 // Get property by ID
-router.get('/:id', async (req, res) => {
+router.get('/:id', authenticateToken, async (req, res) => {
   try {
     const property = await Property.findByPk(req.params.id, {
       include: [
@@ -162,6 +171,10 @@ router.get('/:id', async (req, res) => {
 
     if (!property) {
       return res.status(404).json({ success: false, message: 'Property not found' });
+    }
+
+    if (property.userId !== req.user.userId && req.user.role !== 'admin') {
+      return res.status(403).json({ success: false, message: 'Not authorized to view this property' });
     }
 
     res.json({ success: true, property });

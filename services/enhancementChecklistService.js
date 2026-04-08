@@ -6,9 +6,9 @@ async function createChecklistItem(data) {
 }
 
 // Get checklist items for a property (before/after)
-async function getChecklistItems(propertyId, type) {
+async function getChecklistItems(propertyId, type, extraWhere = {}) {
   return EnhancementChecklist.findAll({
-    where: { propertyId, type },
+    where: { propertyId, type, ...extraWhere },
     order: [['createdAt', 'ASC']]
   });
 }

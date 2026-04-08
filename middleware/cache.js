@@ -8,6 +8,11 @@ const cacheMiddleware = (duration = 300) => { // Default 5 minutes
       return next();
     }
 
+    // Never cache authenticated traffic to avoid leaking one user's data to another.
+    if (req.headers.authorization) {
+      return next();
+    }
+
     const key = `__express__${req.originalUrl || req.url}`;
 
     try {
