@@ -101,7 +101,7 @@ const corsOptions = {
 
     const isHostedFrontendOrigin =
       typeof origin === 'string' &&
-      /^https:\/\/[a-z0-9-]+\.(netlify\.app|vercel\.app)$/i.test(origin);
+      /^https:\/\/[a-z0-9-]+\.(netlify\.app|vercel\.app|github\.io)$/i.test(origin);
 
     if (!origin || allowedOrigins.has(origin) || isLocalDevOrigin || isHostedFrontendOrigin) {
       callback(null, true);
