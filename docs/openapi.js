@@ -15,7 +15,9 @@ const openApiSpec = {
     { name: 'Health' },
     { name: 'Auth' },
     { name: 'Properties' },
-    { name: 'Recommendations' }
+    { name: 'Recommendations' },
+    { name: 'Valuations' },
+    { name: 'Renovation Projects' }
   ],
   components: {
     securitySchemes: {
@@ -110,6 +112,89 @@ const openApiSpec = {
         ],
         responses: {
           200: { description: 'Recommendation list response' }
+        }
+      }
+    },
+    '/valuations/cost-estimate': {
+      post: {
+        tags: ['Valuations'],
+        summary: 'Estimate renovation cost range by city, area type, and category',
+        responses: {
+          200: { description: 'Cost estimate generated' },
+          400: { description: 'Validation error' }
+        }
+      }
+    },
+    '/renovation-projects': {
+      get: {
+        tags: ['Renovation Projects'],
+        summary: 'List renovation tracker projects for current user/admin',
+        security: [{ bearerAuth: [] }],
+        parameters: [
+          { name: 'q', in: 'query', schema: { type: 'string' } },
+          { name: 'status', in: 'query', schema: { type: 'string' } },
+          { name: 'city', in: 'query', schema: { type: 'string' } },
+          { name: 'startDate', in: 'query', schema: { type: 'string', format: 'date' } },
+          { name: 'endDate', in: 'query', schema: { type: 'string', format: 'date' } },
+          { name: 'minCompletion', in: 'query', schema: { type: 'number', minimum: 0, maximum: 100 } },
+          { name: 'maxCompletion', in: 'query', schema: { type: 'number', minimum: 0, maximum: 100 } },
+          { name: 'limit', in: 'query', schema: { type: 'integer', minimum: 1, maximum: 100 } },
+          { name: 'page', in: 'query', schema: { type: 'integer', minimum: 1 } },
+          { name: 'offset', in: 'query', schema: { type: 'integer', minimum: 0 } },
+          {
+            name: 'sortBy',
+            in: 'query',
+            schema: {
+              type: 'string',
+              enum: [
+                'createdAt',
+                'updatedAt',
+                'title',
+                'status',
+                'city',
+                'completionPercentage',
+                'plannedBudget',
+                'spentBudget',
+                'expectedValueUplift'
+              ]
+            }
+          },
+          { name: 'sortOrder', in: 'query', schema: { type: 'string', enum: ['asc', 'desc'] } }
+        ],
+        responses: {
+          200: { description: 'Renovation project list' },
+          401: { description: 'Unauthorized' }
+        }
+      },
+      post: {
+        tags: ['Renovation Projects'],
+        summary: 'Create a renovation project tracker',
+        security: [{ bearerAuth: [] }],
+        responses: {
+          201: { description: 'Renovation project created' },
+          400: { description: 'Validation error' }
+        }
+      }
+    },
+    '/renovation-projects/export/csv': {
+      get: {
+        tags: ['Renovation Projects'],
+        summary: 'Export filtered renovation tracker projects as CSV (admin only)',
+        security: [{ bearerAuth: [] }],
+        responses: {
+          200: { description: 'CSV export stream' },
+          403: { description: 'Admin access required' }
+        }
+      }
+    },
+    '/renovation-projects/analytics/uplift-vs-spend': {
+      get: {
+        tags: ['Renovation Projects'],
+        summary: 'Get uplift vs spend timeline analytics for filtered renovation trackers (admin only)',
+        security: [{ bearerAuth: [] }],
+        responses: {
+          200: { description: 'Analytics timeline response' },
+          403: { description: 'Admin access required' }
         }
       }
     }

@@ -4,6 +4,7 @@ const Property = require('./Property');
 const Recommendation = require('./Recommendation');
 const Notification = require('./Notification');
 const EnhancementChecklist = require('./EnhancementChecklist');
+const RenovationProject = require('./RenovationProject');
 // EnhancementChecklist associations
 Property.hasMany(EnhancementChecklist, {
   as: 'enhancementChecklists',
@@ -85,11 +86,32 @@ Notification.belongsTo(User, {
   foreignKey: 'userId'
 });
 
+Property.hasMany(RenovationProject, {
+  as: 'renovationProjects',
+  foreignKey: 'propertyId'
+});
+
+RenovationProject.belongsTo(Property, {
+  as: 'property',
+  foreignKey: 'propertyId'
+});
+
+User.hasMany(RenovationProject, {
+  as: 'renovationProjects',
+  foreignKey: 'userId'
+});
+
+RenovationProject.belongsTo(User, {
+  as: 'owner',
+  foreignKey: 'userId'
+});
+
 module.exports = {
   sequelize,
   User,
   Property,
   Recommendation,
   Notification,
-  EnhancementChecklist
+  EnhancementChecklist,
+  RenovationProject
 };

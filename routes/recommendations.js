@@ -8,6 +8,109 @@ const { clearCache } = require('../middleware/cache');
 
 const router = express.Router();
 
+const avgCost = (estimatedCost = {}) => {
+  const min = Number(estimatedCost.min || 0);
+  const max = Number(estimatedCost.max || 0);
+  if (!min && !max) return 0;
+  if (!min) return max;
+  if (!max) return min;
+  return (min + max) / 2;
+};
+
+const parseGoals = (input) => {
+  if (Array.isArray(input)) {
+    return input.map((goal) => String(goal || '').toLowerCase().trim()).filter(Boolean);
+  }
+  if (typeof input === 'string') {
+    return input
+      .split(',')
+      .map((goal) => goal.toLowerCase().trim())
+      .filter(Boolean);
+  }
+  return [];
+};
+
+const goalScore = (recommendation, goals = []) => {
+  if (!goals.length) return 0;
+
+  const category = String(recommendation.category || '').toLowerCase();
+  let score = 0;
+
+  for (const goal of goals) {
+    if ((goal.includes('eco') || goal.includes('energy') || goal.includes('sustain')) && category === 'energy-efficiency') {
+      score += 8;
+    }
+    if ((goal.includes('safety') || goal.includes('secure')) && category === 'safety-security') {
+      score += 8;
+    }
+    if ((goal.includes('luxury') || goal.includes('premium') || goal.includes('modern'))) {
+      if (category === 'interior-design' || category === 'kitchen-bathroom') {
+        score += 6;
+      }
+    }
+    if ((goal.includes('quick') || goal.includes('fast')) && recommendation.difficulty === 'easy') {
+      score += 5;
+    }
+    if ((goal.includes('rental') || goal.includes('income')) && category === 'electrical-plumbing') {
+      score += 4;
+    }
+  }
+
+  return score;
+};
+
+const withPersonalizedRanking = ({ recommendations, city, budget, propertyAge, userGoals }) => {
+  const goals = parseGoals(userGoals);
+  const normalizedBudget = Number(budget || 0);
+  const normalizedAge = Number(propertyAge || 0);
+  const normalizedCity = city ? String(city).toLowerCase() : '';
+
+  const ranked = recommendations.map((recommendation) => {
+    const averageCost = avgCost(recommendation.estimatedCost);
+    let score = 0;
+
+    score += Number(recommendation.priority || 0) * 2;
+    score += Number(recommendation.expectedROI || recommendation.roiPercentage || 0) * 0.3;
+
+    if (normalizedCity && Array.isArray(recommendation.applicableCities) && recommendation.applicableCities.length) {
+      const matchedCity = recommendation.applicableCities.some(
+        (c) => String(c || '').toLowerCase() === normalizedCity
+      );
+      score += matchedCity ? 10 : -6;
+    }
+
+    if (normalizedBudget > 0 && averageCost > 0) {
+      if (averageCost <= normalizedBudget) {
+        score += 8;
+      } else {
+        const overBudgetRatio = (averageCost - normalizedBudget) / normalizedBudget;
+        score -= Math.min(10, overBudgetRatio * 10);
+      }
+    }
+
+    if (normalizedAge >= 15) {
+      if (['electrical-plumbing', 'safety-security', 'wall-paint'].includes(recommendation.category)) {
+        score += 6;
+      }
+    } else if (normalizedAge > 0 && normalizedAge <= 7) {
+      if (['energy-efficiency', 'interior-design', 'lighting-fixtures'].includes(recommendation.category)) {
+        score += 4;
+      }
+    }
+
+    score += goalScore(recommendation, goals);
+
+    return {
+      ...recommendation.get({ plain: true }),
+      personalizedScore: Number(score.toFixed(2)),
+      estimatedAverageCost: Math.round(averageCost),
+    };
+  });
+
+  ranked.sort((a, b) => b.personalizedScore - a.personalizedScore);
+  return ranked;
+};
+
 const buildRelatedIds = (body) => {
   if (Array.isArray(body.relatedRecommendationIds)) {
     return body.relatedRecommendationIds;
@@ -25,6 +128,10 @@ router.get('/', async (req, res) => {
       category,
       difficulty,
       q,
+      city,
+      budget,
+      propertyAge,
+      userGoals,
       limit = '10',
       offset = '0',
       sortBy = 'priority',
@@ -36,6 +143,8 @@ router.get('/', async (req, res) => {
     const allowedSortFields = ['priority', 'title', 'difficulty', 'expectedROI', 'createdAt', 'updatedAt'];
     const safeSortBy = allowedSortFields.includes(sortBy) ? sortBy : 'priority';
     const safeOrder = String(order).toUpperCase() === 'ASC' ? 'ASC' : 'DESC';
+    const shouldPersonalize =
+      sortBy === 'personalized' || Boolean(city || budget || propertyAge || userGoals);
 
     const whereClause = { isActive: true };
 
@@ -54,13 +163,18 @@ router.get('/', async (req, res) => {
       distinct: true
     });
 
+    const recommendations = shouldPersonalize
+      ? withPersonalizedRanking({ recommendations: rows, city, budget, propertyAge, userGoals })
+      : rows;
+
     res.json({
       success: true,
       count,
       limit: parsedLimit,
       offset: parsedOffset,
       hasMore: parsedOffset + rows.length < count,
-      recommendations: rows
+      personalizationApplied: shouldPersonalize,
+      recommendations
     });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
@@ -124,7 +238,23 @@ router.get('/property/:propertyId', async (req, res) => {
       order: [['priority', 'DESC']]
     });
 
-    res.json({ success: true, count: filtered.length, recommendations: filtered });
+    const shouldPersonalize = Boolean(req.query.budget || req.query.userGoals || req.query.city);
+    const recommendations = shouldPersonalize
+      ? withPersonalizedRanking({
+          recommendations: filtered,
+          city: req.query.city || city,
+          budget: req.query.budget,
+          propertyAge: property.age,
+          userGoals: req.query.userGoals
+        })
+      : filtered;
+
+    res.json({
+      success: true,
+      count: recommendations.length,
+      personalizationApplied: shouldPersonalize,
+      recommendations
+    });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
   }

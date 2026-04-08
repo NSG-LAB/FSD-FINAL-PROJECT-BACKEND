@@ -1,6 +1,7 @@
 const express = require('express');
 const { body, validationResult } = require('express-validator');
 const { estimateValue } = require('../services/valuationService');
+const { estimateCostByLocation } = require('../services/costEstimatorService');
 
 const router = express.Router();
 
@@ -21,6 +22,26 @@ router.post(
 
     const result = estimateValue(req.body);
     return res.status(200).json(result);
+  }
+);
+
+router.post(
+  '/cost-estimate',
+  [
+    body('city').optional().isString().isLength({ max: 100 }),
+    body('areaType').optional().isIn(['metro', 'urban', 'suburban', 'rural']),
+    body('category').optional().isString().isLength({ max: 100 }),
+    body('propertyAgeYears').optional().isFloat({ min: 0 }),
+    body('budget').optional().isFloat({ min: 0 })
+  ],
+  (req, res) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({ errors: errors.array() });
+    }
+
+    const result = estimateCostByLocation(req.body);
+    return res.status(200).json({ success: true, ...result });
   }
 );
 
