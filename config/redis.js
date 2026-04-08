@@ -21,9 +21,10 @@ if (isRedisDisabled) {
   module.exports = testRedisClient;
 } else {
   // Redis client configuration
-  const redisHost = process.env.REDIS_HOST || 'localhost';
-  const redisPort = process.env.REDIS_PORT || 6380;
-  const redisPassword = process.env.REDIS_PASSWORD || undefined;
+  const redisHost = process.env.REDIS_HOST || process.env.REDISHOST || 'localhost';
+  const redisPort = process.env.REDIS_PORT || process.env.REDISPORT || 6380;
+  const redisPassword = process.env.REDIS_PASSWORD || process.env.REDISPASSWORD || undefined;
+  const redisUrl = process.env.REDIS_URL || process.env.REDIS_URL_URL; // Railway sometimes uses REDIS_URL
 
   console.log('Redis Configuration:', {
     host: redisHost,
@@ -32,12 +33,13 @@ if (isRedisDisabled) {
   });
 
   const redisClient = redis.createClient({
-    socket: {
+    url: redisUrl, // Use URL if available
+    socket: !redisUrl ? {
       host: redisHost,
       port: redisPort,
       family: 4, // Force IPv4
-    },
-    password: redisPassword,
+    } : undefined,
+    password: !redisUrl ? redisPassword : undefined,
     retry_strategy: (options) => {
       if (options.error && options.error.code === 'ECONNREFUSED') {
         console.warn('Redis connection refused');
