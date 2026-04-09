@@ -62,11 +62,16 @@ const configuredOrigins = [
   ...parseOriginList(process.env.CORS_ALLOWED_ORIGINS),
 ];
 
-const allowedOrigins = new Set([
+const developmentOrigins = [
   'http://localhost:3000',
   'http://localhost:5173',
-  ...configuredOrigins,
-]);
+];
+
+const allowedOrigins = new Set(
+  isDevelopment
+    ? [...developmentOrigins, ...configuredOrigins]
+    : configuredOrigins
+);
 
 app.use(helmet({
   contentSecurityPolicy: isDevelopment
@@ -99,11 +104,7 @@ const corsOptions = {
       typeof origin === 'string' &&
       /^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/i.test(origin);
 
-    const isHostedFrontendOrigin =
-      typeof origin === 'string' &&
-      /^https:\/\/[a-z0-9-]+\.(netlify\.app|vercel\.app|github\.io)$/i.test(origin);
-
-    if (!origin || allowedOrigins.has(origin) || isLocalDevOrigin || isHostedFrontendOrigin) {
+    if (!origin || allowedOrigins.has(origin) || isLocalDevOrigin) {
       callback(null, true);
     } else {
       logger.warn('CORS request blocked', { origin });
@@ -212,7 +213,15 @@ const connectDatabase = async () => {
 
     await sequelize.sync({ alter: shouldAlterSchema });
     logger.info('Models synchronized successfully');
-    await ensureDemoAccounts();
+    const shouldSeedDemoAccounts = process.env.ENABLE_DEMO_ACCOUNTS
+      ? String(process.env.ENABLE_DEMO_ACCOUNTS).toLowerCase() === 'true'
+      : isDevelopment;
+
+    if (shouldSeedDemoAccounts) {
+      await ensureDemoAccounts();
+    } else {
+      logger.info('Skipping demo account seeding outside development');
+    }
     await ensureAdminUser();
     isDatabaseConnected = true;
   } catch (error) {

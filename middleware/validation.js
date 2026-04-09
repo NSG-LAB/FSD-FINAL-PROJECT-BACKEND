@@ -61,15 +61,24 @@ const authRules = {
 // Property validation rules
 const propertyRules = {
   create: [
+    body().custom((_, { req }) => {
+      if (req.body.builtUpArea === undefined && req.body.builUpArea !== undefined) {
+        req.body.builtUpArea = req.body.builUpArea;
+      }
+      if (req.body.builtUpArea === undefined) {
+        throw new Error('Built-up area required');
+      }
+      return true;
+    }),
     body('title')
       .trim()
       .notEmpty().withMessage('Title required')
       .isLength({ max: 200 }).withMessage('Title max 200 chars'),
     body('propertyType')
-      .isIn(['apartment', 'house', 'villa', 'townhouse']).withMessage('Invalid property type'),
+      .isIn(['apartment', 'house', 'villa', 'townhouse', 'studio']).withMessage('Invalid property type'),
     body('age')
       .isInt({ min: 0, max: 150 }).withMessage('Age must be 0-150'),
-    body('builUpArea')
+    body('builtUpArea')
       .isInt({ min: 100, max: 100000 }).withMessage('Area must be 100-100000 sqft'),
     body('bedrooms')
       .isInt({ min: 0, max: 20 }).withMessage('Bedrooms must be 0-20'),
