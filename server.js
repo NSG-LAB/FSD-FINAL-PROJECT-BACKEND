@@ -289,10 +289,11 @@ app.use((req, res) => {
 // Start Server
 const PORT = process.env.PORT || 5000;
 let serverInstance = null;
+let compatibilityServerInstance = null;
 
 const startListening = (preferredPort, retriesRemaining = 15) =>
   new Promise((resolve, reject) => {
-    const server = app.listen(preferredPort);
+    const server = app.listen(preferredPort, '0.0.0.0');
 
     server.once('listening', () => {
       resolve({ server, port: preferredPort });
@@ -336,6 +337,15 @@ const gracefulShutdown = async (signal) => {
   logger.info(`${signal} received. Shutting down gracefully...`);
 
   try {
+    if (compatibilityServerInstance) {
+      await new Promise((resolve) => compatibilityServerInstance.close(resolve));
+      logger.info('Compatibility HTTP server closed');
+    }
+  } catch (error) {
+    logger.warn('Error while closing compatibility HTTP server', { error: error.message });
+  }
+
+  try {
     if (serverInstance) {
       await new Promise((resolve) => serverInstance.close(resolve));
       logger.info('HTTP server closed');
@@ -369,6 +379,19 @@ const startServer = async () => {
     const { server, port } = await startListening(preferredPort);
     serverInstance = server;
     logger.info(`Server running on port ${port}`);
+
+    // Compatibility listener keeps Railway services reachable when routing is pinned to port 5000.
+    if (process.env.NODE_ENV === 'production' && port !== 5000) {
+      try {
+        const { server: compatibilityServer } = await startListening(5000, 0);
+        compatibilityServerInstance = compatibilityServer;
+        logger.info('Compatibility listener enabled on port 5000');
+      } catch (error) {
+        logger.warn('Compatibility listener on port 5000 could not be started', {
+          error: error.message,
+        });
+      }
+    }
 
     // Keep startup fast for container platforms; DB can come up shortly after boot.
     void connectDatabaseWithRetry();
