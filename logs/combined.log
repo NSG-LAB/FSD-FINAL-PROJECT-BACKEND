@@ -498,3 +498,13 @@
 {"level":"info","message":"Models synchronized successfully","service":"property-api","timestamp":"2026-04-09 09:52:58"}
 {"level":"info","message":"Demo account already exists: admin@demo.com","service":"property-api","timestamp":"2026-04-09 09:52:58"}
 {"level":"info","message":"Demo account already exists: user@demo.com","service":"property-api","timestamp":"2026-04-09 09:52:58"}
+{"level":"info","message":"All required environment variables are set","service":"property-api","timestamp":"2026-04-09 09:54:46"}
+{"level":"warn","message":"Port 5000 is in use. Retrying on port 5001...","service":"property-api","timestamp":"2026-04-09 09:54:48"}
+{"level":"info","message":"Server running on port 5001","service":"property-api","timestamp":"2026-04-09 09:54:48"}
+{"database":"property_app","host":"localhost","level":"info","message":"Active DB target","port":3306,"service":"property-api","timestamp":"2026-04-09 09:54:48","username":"root"}
+{"level":"info","message":"Attempting to connect to MySQL...","service":"property-api","timestamp":"2026-04-09 09:54:48"}
+{"level":"info","message":"Database ensured","service":"property-api","timestamp":"2026-04-09 09:54:48"}
+{"level":"info","message":"MySQL connection established","service":"property-api","timestamp":"2026-04-09 09:54:48"}
+{"level":"info","message":"Models synchronized successfully","service":"property-api","timestamp":"2026-04-09 09:54:48"}
+{"level":"info","message":"Demo account already exists: admin@demo.com","service":"property-api","timestamp":"2026-04-09 09:54:48"}
+{"level":"info","message":"Demo account already exists: user@demo.com","service":"property-api","timestamp":"2026-04-09 09:54:48"}
