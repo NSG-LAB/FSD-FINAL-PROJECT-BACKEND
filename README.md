@@ -15,7 +15,7 @@ Backend API for property value enhancement workflows (auth, properties, recommen
    ```bash
    npm ci
    ```
-2. Create `/home/runner/work/FSD-FINAL-PROJECT-BACKEND/FSD-FINAL-PROJECT-BACKEND/.env` with required values:
+2. Create `.env` in the project root with required values:
    - `JWT_SECRET`
    - `MYSQL_URI` **or** `MYSQL_DB` + `MYSQL_USER` (+ optional password/host/port)
    - Optional:

@@ -32,9 +32,9 @@ jest.mock('../services/checklistAutoCreateService', () => ({
   ensureChecklistForProperty: jest.fn().mockResolvedValue(undefined)
 }));
 
-const clearCache = jest.fn().mockResolvedValue(undefined);
+const mockClearCache = jest.fn().mockResolvedValue(undefined);
 jest.mock('../middleware/cache', () => ({
-  clearCache: (...args) => clearCache(...args)
+  clearCache: (...args) => mockClearCache(...args)
 }));
 
 jest.mock('../utils/logger', () => ({
@@ -112,7 +112,7 @@ describe('Properties Routes (integration-style with real route module)', () => {
           title: 'New Property',
           propertyType: 'house',
           age: 10,
-          builUpArea: 1200,
+          builtUpArea: 1200,
           bedrooms: 3,
           bathrooms: 2,
           condition: 'good',
@@ -121,7 +121,7 @@ describe('Properties Routes (integration-style with real route module)', () => {
         .expect(201);
 
       expect(response.body.success).toBe(true);
-      expect(clearCache).toHaveBeenCalledWith('__express__/api/properties*');
+      expect(mockClearCache).toHaveBeenCalledWith('__express__/api/properties*');
     });
   });
 

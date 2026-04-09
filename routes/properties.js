@@ -19,7 +19,8 @@ const allowedUploadMimeTypes = new Set([
   'image/png',
   'image/webp'
 ]);
-const maxUploadSizeMb = Math.min(Math.max(parseInt(process.env.MAX_UPLOAD_FILE_SIZE_MB || '5', 10) || 5, 1), 20);
+const clamp = (value, min, max) => Math.min(Math.max(value, min), max);
+const maxUploadSizeMb = clamp(parseInt(process.env.MAX_UPLOAD_FILE_SIZE_MB || '5', 10) || 5, 1, 20);
 
 // Set up multer storage for image uploads
 const storage = multer.diskStorage({
@@ -57,31 +58,13 @@ router.post('/upload-image', authenticateToken, upload.single('image'), (req, re
   res.json({ success: true, message: 'Image uploaded successfully', filePath });
 });
 
-router.use((error, req, res, next) => {
-  if (error instanceof multer.MulterError) {
-    if (error.code === 'LIMIT_FILE_SIZE') {
-      return res.status(400).json({
-        success: false,
-        message: `Image size exceeds ${maxUploadSizeMb}MB limit`
-      });
-    }
-    return res.status(400).json({ success: false, message: error.message });
-  }
-
-  if (error?.statusCode) {
-    return res.status(error.statusCode).json({ success: false, message: error.message });
-  }
-
-  return next(error);
-});
-
 // Export properties as CSV
 router.get('/export/csv', authenticateToken, async (req, res) => {
   try {
     const whereClause = req.user.role === 'admin' ? {} : { userId: req.user.userId };
     const properties = await Property.findAll({ where: whereClause });
     const fields = [
-      'id', 'userId', 'title', 'description', 'propertyType', 'age', 'builUpArea',
+      'id', 'userId', 'title', 'description', 'propertyType', 'age', 'builtUpArea',
       'bedrooms', 'bathrooms', 'location', 'condition', 'currentValue', 'features',
       'images', 'improvements', 'estimatedNewValue', 'potentialValueIncrease', 'status',
       'createdAt', 'updatedAt', 'deletedAt'
@@ -104,6 +87,10 @@ router.post('/', authenticateToken, propertyRules.create, handleValidationErrors
       ...req.body,
       userId: req.user.userId
     };
+    if (propertyData.builtUpArea === undefined && propertyData.builUpArea !== undefined) {
+      propertyData.builtUpArea = propertyData.builUpArea;
+      delete propertyData.builUpArea;
+    }
 
     const property = await Property.create(propertyData);
 
@@ -237,7 +224,13 @@ router.put('/:id', authenticateToken, async (req, res) => {
       return res.status(403).json({ success: false, message: 'Not authorized to update this property' });
     }
 
-    await property.update({ ...req.body });
+    const updateData = { ...req.body };
+    if (updateData.builtUpArea === undefined && updateData.builUpArea !== undefined) {
+      updateData.builtUpArea = updateData.builUpArea;
+      delete updateData.builUpArea;
+    }
+
+    await property.update(updateData);
 
     // Clear properties cache
     await clearCache('__express__/api/properties*');
@@ -270,6 +263,24 @@ router.delete('/:id', authenticateToken, async (req, res) => {
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
   }
+});
+
+router.use((error, req, res, next) => {
+  if (error instanceof multer.MulterError) {
+    if (error.code === 'LIMIT_FILE_SIZE') {
+      return res.status(400).json({
+        success: false,
+        message: `Image size exceeds ${maxUploadSizeMb}MB limit`
+      });
+    }
+    return res.status(400).json({ success: false, message: error.message });
+  }
+
+  if (error?.statusCode) {
+    return res.status(error.statusCode).json({ success: false, message: error.message });
+  }
+
+  return next(error);
 });
 
 module.exports = router;
