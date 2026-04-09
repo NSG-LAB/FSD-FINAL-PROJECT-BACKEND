@@ -17,7 +17,14 @@ const openApiSpec = {
     { name: 'Properties' },
     { name: 'Recommendations' },
     { name: 'Valuations' },
-    { name: 'Renovation Projects' }
+    { name: 'Renovation Projects' },
+    { name: 'Users' },
+    { name: 'Notifications' },
+    { name: 'Enhancement Checklist' },
+    { name: 'Reports' },
+    { name: 'ROI' },
+    { name: 'Analytics' },
+    { name: 'Monitoring' }
   ],
   components: {
     securitySchemes: {
@@ -225,6 +232,121 @@ const openApiSpec = {
         responses: {
           200: { description: 'Analytics timeline response' },
           403: { description: 'Admin access required' }
+        }
+      }
+    },
+    '/users/profile': {
+      get: {
+        tags: ['Users'],
+        summary: 'Get current user profile',
+        security: [{ bearerAuth: [] }],
+        responses: {
+          200: { description: 'User profile' },
+          401: { description: 'Unauthorized' }
+        }
+      },
+      put: {
+        tags: ['Users'],
+        summary: 'Update current user profile',
+        security: [{ bearerAuth: [] }],
+        responses: {
+          200: { description: 'Profile updated' },
+          400: { description: 'Validation error' }
+        }
+      }
+    },
+    '/notifications': {
+      get: {
+        tags: ['Notifications'],
+        summary: 'List notifications',
+        security: [{ bearerAuth: [] }],
+        responses: {
+          200: { description: 'Notifications list' }
+        }
+      }
+    },
+    '/enhancement-checklist/{propertyId}': {
+      get: {
+        tags: ['Enhancement Checklist'],
+        summary: 'Get enhancement checklist for property',
+        security: [{ bearerAuth: [] }],
+        parameters: [
+          { name: 'propertyId', in: 'path', required: true, schema: { type: 'string' } }
+        ],
+        responses: {
+          200: { description: 'Checklist response' },
+          404: { description: 'Property not found' }
+        }
+      }
+    },
+    '/reports/property/{propertyId}': {
+      get: {
+        tags: ['Reports'],
+        summary: 'Generate property report',
+        security: [{ bearerAuth: [] }],
+        parameters: [
+          { name: 'propertyId', in: 'path', required: true, schema: { type: 'string' } }
+        ],
+        responses: {
+          200: { description: 'Generated report' },
+          403: { description: 'Forbidden' }
+        }
+      }
+    },
+    '/roi/analyze': {
+      post: {
+        tags: ['ROI'],
+        summary: 'Analyze ROI for selected recommendations and property',
+        security: [{ bearerAuth: [] }],
+        responses: {
+          200: { description: 'ROI analysis response' },
+          400: { description: 'Validation error' }
+        }
+      }
+    },
+    '/analytics/dashboard': {
+      get: {
+        tags: ['Analytics'],
+        summary: 'Get analytics dashboard data',
+        security: [{ bearerAuth: [] }],
+        responses: {
+          200: { description: 'Analytics dashboard payload' }
+        }
+      }
+    },
+    '/monitoring/metrics': {
+      get: {
+        tags: ['Monitoring'],
+        summary: 'Get backend monitoring metrics (admin)',
+        security: [{ bearerAuth: [] }],
+        responses: {
+          200: { description: 'Metrics payload' },
+          403: { description: 'Admin access required' }
+        }
+      }
+    },
+    '/monitoring/pm2-status': {
+      get: {
+        tags: ['Monitoring'],
+        summary: 'Get PM2 runtime status (admin)',
+        security: [{ bearerAuth: [] }],
+        responses: {
+          200: { description: 'PM2 process state' },
+          503: { description: 'PM2 unavailable in runtime environment' }
+        }
+      }
+    },
+    '/monitoring/logs': {
+      get: {
+        tags: ['Monitoring'],
+        summary: 'Get recent logs (admin)',
+        security: [{ bearerAuth: [] }],
+        parameters: [
+          { name: 'type', in: 'query', schema: { type: 'string', enum: ['combined', 'err', 'out'] } },
+          { name: 'lines', in: 'query', schema: { type: 'integer', minimum: 1, maximum: 2000 } }
+        ],
+        responses: {
+          200: { description: 'Recent log lines' }
         }
       }
     }

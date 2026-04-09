@@ -1,343 +1,176 @@
 const request = require('supertest');
-const { Sequelize } = require('sequelize');
 const express = require('express');
-const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
-const path = require('path');
-require('dotenv').config({ path: path.join(__dirname, '..', '.env') });
 
-// Set up test environment
 process.env.NODE_ENV = 'test';
 process.env.JWT_SECRET = process.env.JWT_SECRET || 'test_jwt_secret_key_for_testing_only';
-process.env.MYSQL_DB = 'property_app_test';
-process.env.MYSQL_USER = process.env.MYSQL_USER || 'root';
-process.env.MYSQL_PASSWORD = process.env.MYSQL_PASSWORD || 'Root@123';
-process.env.MYSQL_HOST = process.env.MYSQL_HOST || 'localhost';
-process.env.MYSQL_PORT = process.env.MYSQL_PORT || '3306';
 
-// Create test sequelize instance
-const sequelize = new Sequelize({
-  dialect: 'mysql',
-  host: process.env.MYSQL_HOST || 'localhost',
-  port: process.env.MYSQL_PORT || '3306',
-  username: process.env.MYSQL_USER || 'root',
-  password: process.env.MYSQL_PASSWORD || 'Root@123',
-  database: 'property_app_test', // Hardcoded for auth tests
-  logging: false,
-  pool: {
-    max: 5,
-    min: 0,
-    acquire: 30000,
-    idle: 10000
-  }
-});
+const mockUserModel = {
+  findOne: jest.fn(),
+  create: jest.fn(),
+  scope: jest.fn()
+};
 
-// Define User model for tests
-const User = sequelize.define('User', {
-  id: {
-    type: Sequelize.INTEGER,
-    primaryKey: true,
-    autoIncrement: true
-  },
-  firstName: {
-    type: Sequelize.STRING,
-    allowNull: false
-  },
-  lastName: {
-    type: Sequelize.STRING,
-    allowNull: false
-  },
-  email: {
-    type: Sequelize.STRING,
-    allowNull: false,
-    unique: true
-  },
-  password: {
-    type: Sequelize.STRING,
-    allowNull: false
-  },
-  city: {
-    type: Sequelize.STRING,
-    allowNull: false
-  },
-  state: {
-    type: Sequelize.STRING,
-    allowNull: false
-  },
-  role: {
-    type: Sequelize.ENUM('user', 'admin'),
-    defaultValue: 'user'
-  },
-  isVerified: {
-    type: Sequelize.BOOLEAN,
-    defaultValue: false
-  }
-}, {
-  timestamps: true
-});
+jest.mock('../models', () => ({
+  User: mockUserModel
+}));
 
-// Create Express app for testing
-const app = express();
-app.use(express.json());
+jest.mock('../middleware/rateLimiter', () => ({
+  loginLimiter: (req, res, next) => next(),
+  registerLimiter: (req, res, next) => next()
+}));
 
-// Auth routes for testing
-app.post('/api/auth/register', async (req, res) => {
-  try {
-    const { firstName, lastName, email, password, city, state } = req.body;
+jest.mock('../utils/logger', () => ({
+  info: jest.fn(),
+  warn: jest.fn(),
+  error: jest.fn()
+}));
 
-    if (!firstName || !lastName || !email || !password || !city || !state) {
-      return res.status(400).json({ success: false, message: 'All fields are required' });
-    }
+const authRouter = require('../routes/auth');
 
-    if (password.length < 6) {
-      return res.status(400).json({ success: false, message: 'Password must be at least 6 characters long' });
-    }
+const createApp = () => {
+  const app = express();
+  app.use(express.json());
+  app.use('/api/auth', authRouter);
+  return app;
+};
 
-    const existingUser = await User.findOne({ where: { email } });
-    if (existingUser) {
-      return res.status(400).json({ success: false, message: 'User already exists' });
-    }
+describe('Auth Routes (integration-style with real route module)', () => {
+  let app;
 
-    const hashedPassword = await bcrypt.hash(password, 10);
-    const user = await User.create({
-      firstName,
-      lastName,
-      email,
-      password: hashedPassword,
-      city,
-      state
-    });
-
-    const token = jwt.sign(
-      { id: user.id, email: user.email, role: user.role },
-      process.env.JWT_SECRET,
-      { expiresIn: '24h' }
-    );
-
-    res.status(201).json({
-      success: true,
-      message: 'User registered successfully',
-      token,
-      user: {
-        id: user.id,
-        firstName: user.firstName,
-        lastName: user.lastName,
-        email: user.email,
-        city: user.city,
-        state: user.state,
-        role: user.role
-      }
-    });
-  } catch (error) {
-    console.error('Registration error:', error);
-    res.status(500).json({ success: false, message: 'Server error' });
-  }
-});
-
-app.post('/api/auth/login', async (req, res) => {
-  try {
-    const { email, password } = req.body;
-
-    if (!email || !password) {
-      return res.status(400).json({ success: false, message: 'Email and password are required' });
-    }
-
-    const user = await User.findOne({ where: { email } });
-    if (!user) {
-      return res.status(401).json({ success: false, message: 'Invalid credentials' });
-    }
-
-    const isPasswordValid = await bcrypt.compare(password, user.password);
-    if (!isPasswordValid) {
-      return res.status(401).json({ success: false, message: 'Invalid credentials' });
-    }
-
-    const token = jwt.sign(
-      { id: user.id, email: user.email, role: user.role },
-      process.env.JWT_SECRET,
-      { expiresIn: '24h' }
-    );
-
-    res.json({
-      success: true,
-      message: 'Login successful',
-      token,
-      user: {
-        id: user.id,
-        firstName: user.firstName,
-        lastName: user.lastName,
-        email: user.email,
-        city: user.city,
-        state: user.state,
-        role: user.role
-      }
-    });
-  } catch (error) {
-    console.error('Login error:', error);
-    res.status(500).json({ success: false, message: 'Server error' });
-  }
-});
-
-describe('Auth Routes', () => {
-  let loginTestEmail;
-
-  beforeAll(async () => {
-    try {
-      await sequelize.authenticate();
-      await sequelize.query('SET FOREIGN_KEY_CHECKS = 0');
-      await sequelize.sync({ force: true });
-      await sequelize.query('SET FOREIGN_KEY_CHECKS = 1');
-    } catch (error) {
-      console.error('Test database setup failed:', error);
-      throw error;
-    }
-  });
-
-  afterAll(async () => {
-    await sequelize.close();
+  beforeEach(() => {
+    app = createApp();
+    jest.clearAllMocks();
   });
 
   describe('POST /api/auth/register', () => {
-    it('should register a new user successfully', async () => {
-      const userData = {
-        firstName: 'John',
-        lastName: 'Doe',
-        email: 'john.doe@example.com',
-        password: 'password123',
-        city: 'Mumbai',
-        state: 'Maharashtra'
-      };
+    it('registers a new user', async () => {
+      mockUserModel.findOne.mockResolvedValue(null);
+      mockUserModel.create.mockResolvedValue({
+        id: 'user-1',
+        email: 'john@example.com',
+        role: 'user',
+        get: () => ({
+          id: 'user-1',
+          firstName: 'John',
+          lastName: 'Doe',
+          email: 'john@example.com',
+          role: 'user',
+          password: 'hashed'
+        })
+      });
 
       const response = await request(app)
         .post('/api/auth/register')
-        .send(userData)
+        .send({
+          firstName: 'John',
+          lastName: 'Doe',
+          email: 'john@example.com',
+          password: 'Password123',
+          city: 'Mumbai',
+          state: 'Maharashtra'
+        })
         .expect(201);
 
       expect(response.body.success).toBe(true);
-      expect(response.body.message).toBe('User registered successfully');
+      expect(response.body.user.email).toBe('john@example.com');
+      expect(response.body.user.password).toBeUndefined();
       expect(response.body.token).toBeDefined();
-      expect(response.body.user).toBeDefined();
-      expect(response.body.user.email).toBe(userData.email);
     });
 
-    it('should return 400 for missing required fields', async () => {
-      const incompleteData = {
-        firstName: 'John',
-        email: 'john.doe@example.com'
-        // Missing lastName, password, city, state
-      };
+    it('rejects duplicate email', async () => {
+      mockUserModel.findOne.mockResolvedValue({ id: 'existing' });
 
       const response = await request(app)
         .post('/api/auth/register')
-        .send(incompleteData)
+        .send({
+          firstName: 'Jane',
+          lastName: 'Doe',
+          email: 'jane@example.com',
+          password: 'Password123',
+          city: 'Pune',
+          state: 'Maharashtra'
+        })
         .expect(400);
 
       expect(response.body.success).toBe(false);
-      expect(response.body.message).toBe('All fields are required');
-    });
-
-    it('should return 400 if password is too short', async () => {
-      const userData = {
-        firstName: 'John',
-        lastName: 'Doe',
-        email: 'john.doe@example.com',
-        password: '123',
-        city: 'Mumbai',
-        state: 'Maharashtra'
-      };
-
-      const response = await request(app)
-        .post('/api/auth/register')
-        .send(userData)
-        .expect(400);
-
-      expect(response.body.success).toBe(false);
-      expect(response.body.message).toBe('Password must be at least 6 characters long');
-    });
-
-    it('should return 400 if user already exists', async () => {
-      const userData = {
-        firstName: 'Jane',
-        lastName: 'Smith',
-        email: 'jane.smith@example.com',
-        password: 'password123',
-        city: 'Delhi',
-        state: 'Delhi'
-      };
-
-      // First registration
-      await request(app)
-        .post('/api/auth/register')
-        .send(userData)
-        .expect(201);
-
-      // Second registration with same email
-      const response = await request(app)
-        .post('/api/auth/register')
-        .send(userData)
-        .expect(400);
-
-      expect(response.body.success).toBe(false);
-      expect(response.body.message).toBe('User already exists');
+      expect(response.body.message).toBe('Email already registered');
     });
   });
 
   describe('POST /api/auth/login', () => {
-    beforeEach(async () => {
-      // Create a fresh test user for each login test
-      loginTestEmail = `login${Date.now()}@example.com`;
-      const hashedPassword = await bcrypt.hash('password123', 10);
-      await User.create({
-        firstName: 'Login',
-        lastName: 'Test',
-        email: loginTestEmail,
-        password: hashedPassword,
-        city: 'Bangalore',
-        state: 'Karnataka'
-      });
-    });
-
-    it('should login successfully with correct credentials', async () => {
-      const loginData = {
-        email: loginTestEmail,
-        password: 'password123'
+    it('logs in with valid credentials', async () => {
+      const mockUser = {
+        id: 'user-2',
+        email: 'login@example.com',
+        role: 'user',
+        comparePassword: jest.fn().mockResolvedValue(true),
+        get: () => ({
+          id: 'user-2',
+          email: 'login@example.com',
+          role: 'user',
+          password: 'hashed'
+        })
       };
+      mockUserModel.scope.mockReturnValue({
+        findOne: jest.fn().mockResolvedValue(mockUser)
+      });
 
       const response = await request(app)
         .post('/api/auth/login')
-        .send(loginData)
+        .send({ email: 'login@example.com', password: 'Password123' })
         .expect(200);
 
       expect(response.body.success).toBe(true);
-      expect(response.body.message).toBe('Login successful');
       expect(response.body.token).toBeDefined();
-      expect(response.body.user).toBeDefined();
-      expect(response.body.user.email).toBe(loginData.email);
+      expect(response.body.user.password).toBeUndefined();
     });
 
-    it('should return 401 for invalid credentials', async () => {
-      const loginData = {
-        email: loginTestEmail,
-        password: 'wrongpassword'
-      };
+    it('returns 401 for invalid credentials', async () => {
+      mockUserModel.scope.mockReturnValue({
+        findOne: jest.fn().mockResolvedValue(null)
+      });
 
       const response = await request(app)
         .post('/api/auth/login')
-        .send(loginData)
+        .send({ email: 'missing@example.com', password: 'Password123' })
         .expect(401);
 
       expect(response.body.success).toBe(false);
       expect(response.body.message).toBe('Invalid credentials');
     });
+  });
 
-    it('should return 400 if email or password is missing', async () => {
+  describe('POST /api/auth/logout', () => {
+    it('rejects when token is missing', async () => {
       const response = await request(app)
-        .post('/api/auth/login')
-        .send({ email: loginTestEmail })
-        .expect(400);
+        .post('/api/auth/logout')
+        .expect(401);
 
-      expect(response.body.success).toBe(false);
-      expect(response.body.message).toBe('Email and password are required');
+      expect(response.body.message).toBe('Access token required');
+    });
+
+    it('rejects invalid token', async () => {
+      const response = await request(app)
+        .post('/api/auth/logout')
+        .set('Authorization', 'Bearer invalid-token')
+        .expect(403);
+
+      expect(response.body.message).toBe('Invalid or expired token');
+    });
+
+    it('succeeds with valid token', async () => {
+      const token = jwt.sign(
+        { userId: 'user-1', email: 'user@example.com', role: 'user' },
+        process.env.JWT_SECRET
+      );
+
+      const response = await request(app)
+        .post('/api/auth/logout')
+        .set('Authorization', `Bearer ${token}`)
+        .expect(200);
+
+      expect(response.body.success).toBe(true);
     });
   });
 });

@@ -1,4 +1,5 @@
 
+const fs = require('fs');
 const multer = require('multer');
 const path = require('path');
 const express = require('express');
@@ -12,17 +13,39 @@ const { Parser } = require('json2csv');
 
 const router = express.Router();
 
+const uploadsDirectory = path.join(__dirname, '../uploads/');
+const allowedUploadMimeTypes = new Set([
+  'image/jpeg',
+  'image/png',
+  'image/webp'
+]);
+const maxUploadSizeMb = Math.min(Math.max(parseInt(process.env.MAX_UPLOAD_FILE_SIZE_MB || '5', 10) || 5, 1), 20);
+
 // Set up multer storage for image uploads
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
-    cb(null, path.join(__dirname, '../uploads/'));
+    fs.mkdirSync(uploadsDirectory, { recursive: true });
+    cb(null, uploadsDirectory);
   },
   filename: function (req, file, cb) {
+    const extension = path.extname(file.originalname || '').toLowerCase();
+    const safeExtension = ['.jpg', '.jpeg', '.png', '.webp'].includes(extension) ? extension : '.bin';
     const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
-    cb(null, uniqueSuffix + '-' + file.originalname);
+    cb(null, `property-${uniqueSuffix}${safeExtension}`);
   }
 });
-const upload = multer({ storage });
+const upload = multer({
+  storage,
+  limits: { fileSize: maxUploadSizeMb * 1024 * 1024 },
+  fileFilter: (req, file, cb) => {
+    if (!allowedUploadMimeTypes.has(file.mimetype)) {
+      const error = new Error('Only JPG, PNG, and WEBP images are allowed');
+      error.statusCode = 400;
+      return cb(error);
+    }
+    return cb(null, true);
+  }
+});
 
 // Image upload endpoint
 router.post('/upload-image', authenticateToken, upload.single('image'), (req, res) => {
@@ -32,6 +55,24 @@ router.post('/upload-image', authenticateToken, upload.single('image'), (req, re
   // Return the file path for preview (relative to /uploads/)
   const filePath = `/uploads/${req.file.filename}`;
   res.json({ success: true, message: 'Image uploaded successfully', filePath });
+});
+
+router.use((error, req, res, next) => {
+  if (error instanceof multer.MulterError) {
+    if (error.code === 'LIMIT_FILE_SIZE') {
+      return res.status(400).json({
+        success: false,
+        message: `Image size exceeds ${maxUploadSizeMb}MB limit`
+      });
+    }
+    return res.status(400).json({ success: false, message: error.message });
+  }
+
+  if (error?.statusCode) {
+    return res.status(error.statusCode).json({ success: false, message: error.message });
+  }
+
+  return next(error);
 });
 
 // Export properties as CSV

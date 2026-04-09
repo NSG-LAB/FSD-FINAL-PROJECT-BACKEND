@@ -66,7 +66,7 @@ const propertyRules = {
       .notEmpty().withMessage('Title required')
       .isLength({ max: 200 }).withMessage('Title max 200 chars'),
     body('propertyType')
-      .isIn(['apartment', 'house', 'villa', 'townhouse']).withMessage('Invalid property type'),
+      .isIn(['apartment', 'house', 'villa', 'townhouse', 'studio']).withMessage('Invalid property type'),
     body('age')
       .isInt({ min: 0, max: 150 }).withMessage('Age must be 0-150'),
     body('builUpArea')
