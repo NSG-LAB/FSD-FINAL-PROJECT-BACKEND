@@ -115,6 +115,36 @@ const openApiSpec = {
         }
       }
     },
+    '/recommendations/property/{propertyId}': {
+      get: {
+        tags: ['Recommendations'],
+        summary: 'Get recommendations tailored for a specific property (owner/admin)',
+        security: [{ bearerAuth: [] }],
+        parameters: [
+          { name: 'propertyId', in: 'path', required: true, schema: { type: 'string' } },
+          { name: 'city', in: 'query', schema: { type: 'string' } },
+          { name: 'budget', in: 'query', schema: { type: 'number' } },
+          { name: 'userGoals', in: 'query', schema: { type: 'string' } },
+          { name: 'limit', in: 'query', schema: { type: 'integer', minimum: 1, maximum: 100 } },
+          { name: 'offset', in: 'query', schema: { type: 'integer', minimum: 0 } },
+          {
+            name: 'sortBy',
+            in: 'query',
+            schema: {
+              type: 'string',
+              enum: ['priority', 'title', 'difficulty', 'expectedROI', 'createdAt', 'updatedAt', 'personalized']
+            }
+          },
+          { name: 'order', in: 'query', schema: { type: 'string', enum: ['ASC', 'DESC'] } }
+        ],
+        responses: {
+          200: { description: 'Property recommendation list response' },
+          401: { description: 'Unauthorized' },
+          403: { description: 'Forbidden' },
+          404: { description: 'Property not found' }
+        }
+      }
+    },
     '/valuations/cost-estimate': {
       post: {
         tags: ['Valuations'],

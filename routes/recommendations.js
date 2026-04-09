@@ -181,20 +181,40 @@ router.get('/', async (req, res) => {
   }
 });
 
-// Get recommendations for a property
-router.get('/property/:propertyId', async (req, res) => {
+// Get recommendations for a property (owner/admin only)
+router.get('/property/:propertyId', authenticateToken, async (req, res) => {
   try {
+    const {
+      city,
+      budget,
+      userGoals,
+      sortBy = 'priority',
+      order = 'DESC',
+      limit = '10',
+      offset = '0'
+    } = req.query;
+
+    const parsedLimit = Math.min(Math.max(parseInt(limit, 10) || 10, 1), 100);
+    const parsedOffset = Math.max(parseInt(offset, 10) || 0, 0);
+    const allowedSortFields = ['priority', 'title', 'difficulty', 'expectedROI', 'createdAt', 'updatedAt'];
+    const safeSortBy = allowedSortFields.includes(sortBy) ? sortBy : 'priority';
+    const safeOrder = String(order).toUpperCase() === 'ASC' ? 'ASC' : 'DESC';
+
     const property = await Property.findByPk(req.params.propertyId);
 
     if (!property) {
       return res.status(404).json({ success: false, message: 'Property not found' });
     }
 
+    if (req.user.role !== 'admin' && property.userId !== req.user.userId) {
+      return res.status(403).json({ success: false, message: 'Not authorized to view this property recommendations' });
+    }
+
     const escapedAll = sequelize.escape(JSON.stringify('all'));
     const escapedPropertyType = sequelize.escape(JSON.stringify(property.propertyType));
     const escapedCondition = sequelize.escape(JSON.stringify(property.condition));
-    const city = property.location?.city;
-    const escapedCity = city ? sequelize.escape(JSON.stringify(city)) : null;
+    const propertyCity = property.location?.city;
+    const escapedCity = propertyCity ? sequelize.escape(JSON.stringify(propertyCity)) : null;
 
     const filtered = await Recommendation.findAll({
       where: {
@@ -222,7 +242,7 @@ router.get('/property/:propertyId', async (req, res) => {
               )
             ]
           },
-          city
+          propertyCity
             ? {
                 [Op.or]: [
                   sequelize.where(sequelize.fn('JSON_LENGTH', sequelize.col('applicableCities')), 0),
@@ -235,25 +255,37 @@ router.get('/property/:propertyId', async (req, res) => {
             : sequelize.where(sequelize.fn('JSON_LENGTH', sequelize.col('applicableCities')), 0)
         ]
       },
-      order: [['priority', 'DESC']]
+      order: [[safeSortBy, safeOrder]]
     });
 
-    const shouldPersonalize = Boolean(req.query.budget || req.query.userGoals || req.query.city);
-    const recommendations = shouldPersonalize
+    const shouldPersonalize = sortBy === 'personalized' || Boolean(budget || userGoals || city);
+    let recommendations = shouldPersonalize
       ? withPersonalizedRanking({
           recommendations: filtered,
-          city: req.query.city || city,
-          budget: req.query.budget,
+          city: city || propertyCity,
+          budget,
           propertyAge: property.age,
-          userGoals: req.query.userGoals
+          userGoals
         })
       : filtered;
 
+    if (shouldPersonalize && sortBy === 'personalized' && safeOrder === 'ASC') {
+      recommendations = [...recommendations].reverse();
+    }
+
+    const total = recommendations.length;
+    const paginatedRecommendations = recommendations.slice(parsedOffset, parsedOffset + parsedLimit);
+
     res.json({
       success: true,
-      count: recommendations.length,
+      count: total,
+      limit: parsedLimit,
+      offset: parsedOffset,
+      hasMore: parsedOffset + paginatedRecommendations.length < total,
       personalizationApplied: shouldPersonalize,
-      recommendations
+      sortBy: shouldPersonalize && sortBy === 'personalized' ? 'personalized' : safeSortBy,
+      order: safeOrder,
+      recommendations: paginatedRecommendations
     });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
