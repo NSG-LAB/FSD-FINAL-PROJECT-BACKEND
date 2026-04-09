@@ -27,9 +27,10 @@ const Property = sequelize.define('Property', {
     type: DataTypes.INTEGER,
     allowNull: false
   },
-  builUpArea: {
+  builtUpArea: {
     type: DataTypes.INTEGER,
-    allowNull: false
+    allowNull: false,
+    field: 'builUpArea'
   },
   bedrooms: {
     type: DataTypes.INTEGER,
