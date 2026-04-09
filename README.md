@@ -67,7 +67,7 @@ GitHub Actions workflow runs:
   - `CORS_ALLOWED_ORIGINS=https://nsg-lab.github.io`
 - If demo logins are needed in production, set `ENABLE_DEMO_ACCOUNTS=true`.
 - Docker health checks use `PORT` dynamically, so Railway-provided ports are supported.
-- In production, the API also opens a compatibility listener on port `5000` when `PORT` differs. This helps older Railway routing configs that are pinned to 5000.
+- In production, the API also opens compatibility listeners on ports `5000` and `3000` when `PORT` differs. This helps Railway routing configs that are pinned to either of those ports.
 
 ## Security notes
 

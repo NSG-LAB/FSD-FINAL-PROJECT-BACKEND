@@ -289,7 +289,7 @@ app.use((req, res) => {
 // Start Server
 const PORT = process.env.PORT || 5000;
 let serverInstance = null;
-let compatibilityServerInstance = null;
+const compatibilityServerInstances = [];
 
 const startListening = (preferredPort, retriesRemaining = 15) =>
   new Promise((resolve, reject) => {
@@ -337,9 +337,11 @@ const gracefulShutdown = async (signal) => {
   logger.info(`${signal} received. Shutting down gracefully...`);
 
   try {
-    if (compatibilityServerInstance) {
-      await new Promise((resolve) => compatibilityServerInstance.close(resolve));
-      logger.info('Compatibility HTTP server closed');
+    for (const compatibilityServer of compatibilityServerInstances) {
+      await new Promise((resolve) => compatibilityServer.close(resolve));
+    }
+    if (compatibilityServerInstances.length > 0) {
+      logger.info('Compatibility HTTP servers closed');
     }
   } catch (error) {
     logger.warn('Error while closing compatibility HTTP server', { error: error.message });
@@ -380,16 +382,20 @@ const startServer = async () => {
     serverInstance = server;
     logger.info(`Server running on port ${port}`);
 
-    // Compatibility listener keeps Railway services reachable when routing is pinned to port 5000.
-    if (process.env.NODE_ENV === 'production' && port !== 5000) {
-      try {
-        const { server: compatibilityServer } = await startListening(5000, 0);
-        compatibilityServerInstance = compatibilityServer;
-        logger.info('Compatibility listener enabled on port 5000');
-      } catch (error) {
-        logger.warn('Compatibility listener on port 5000 could not be started', {
-          error: error.message,
-        });
+    // Compatibility listeners keep Railway services reachable when routing is pinned.
+    if (process.env.NODE_ENV === 'production') {
+      const fallbackPorts = [5000, 3000].filter((fallbackPort) => fallbackPort !== port);
+
+      for (const fallbackPort of fallbackPorts) {
+        try {
+          const { server: compatibilityServer } = await startListening(fallbackPort, 0);
+          compatibilityServerInstances.push(compatibilityServer);
+          logger.info(`Compatibility listener enabled on port ${fallbackPort}`);
+        } catch (error) {
+          logger.warn(`Compatibility listener on port ${fallbackPort} could not be started`, {
+            error: error.message,
+          });
+        }
       }
     }
 
