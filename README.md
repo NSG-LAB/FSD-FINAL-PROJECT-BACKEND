@@ -59,6 +59,15 @@ GitHub Actions workflow runs:
 3. `npm run build`
 4. `npm test -- --runInBand`
 
+## Railway Deployment Notes
+
+- Ensure required variables are set: `JWT_SECRET` and either `MYSQL_URI` or `MYSQL_DB` plus `MYSQL_USER`.
+- Configure CORS for GitHub Pages frontend with:
+  - `FRONTEND_URL=https://nsg-lab.github.io`
+  - `CORS_ALLOWED_ORIGINS=https://nsg-lab.github.io`
+- If demo logins are needed in production, set `ENABLE_DEMO_ACCOUNTS=true`.
+- Docker health checks use `PORT` dynamically, so Railway-provided ports are supported.
+
 ## Security notes
 
 - Demo account seeding is disabled by default outside development.
