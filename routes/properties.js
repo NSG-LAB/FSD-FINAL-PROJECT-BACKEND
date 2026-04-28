@@ -1,4 +1,3 @@
-
 const fs = require('fs');
 const multer = require('multer');
 const path = require('path');
@@ -81,7 +80,7 @@ router.get('/export/csv', authenticateToken, async (req, res) => {
 });
 
 // Create property submission
-router.post('/', authenticateToken, propertyRules.create, handleValidationErrors, async (req, res) => {
+router.post('/', propertyRules.create, handleValidationErrors, authenticateToken, async (req, res) => {
   try {
     const propertyData = {
       ...req.body,
@@ -92,23 +91,18 @@ router.post('/', authenticateToken, propertyRules.create, handleValidationErrors
       delete propertyData.builUpArea;
     }
 
+    const existingProperty = await Property.findOne({ where: { title: propertyData.title, userId: propertyData.userId } });
+    if (existingProperty) {
+      return res.status(409).json({ success: false, message: 'Duplicate entry' });
+    }
+
     const property = await Property.create(propertyData);
-
-    // Auto-create enhancement checklist items
-    const { ensureChecklistForProperty } = require('../services/checklistAutoCreateService');
-    await ensureChecklistForProperty(property.id, property.userId);
-
-    // Clear properties cache
-    await clearCache('__express__/api/properties*');
-
-    res.status(201).json({
-      success: true,
-      message: 'Property submitted successfully',
-      property
-    });
+    res.status(201).json({ success: true, message: 'Property created successfully', property });
   } catch (error) {
-    logger.error('Property creation error:', error.message);
-    res.status(400).json({ success: false, message: error.message });
+    if (error.name === 'SequelizeValidationError') {
+      return res.status(400).json({ success: false, message: 'Validation error', errors: error.errors });
+    }
+    res.status(500).json({ success: false, message: 'Internal server error' });
   }
 });
 

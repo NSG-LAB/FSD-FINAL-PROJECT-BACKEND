@@ -1,4 +1,5 @@
 const { EnhancementChecklist } = require('../models');
+const axios = require('axios');
 
 // Create a checklist item
 async function createChecklistItem(data) {
@@ -23,9 +24,45 @@ async function deleteChecklistItem(id) {
   return EnhancementChecklist.destroy({ where: { id } });
 }
 
+// Call AI service for property price prediction
+async function predictPropertyPrice(features) {
+  try {
+    const response = await axios.post('http://localhost:8000/predict-price', features);
+    return response.data;
+  } catch (error) {
+    console.error('Error calling AI service for price prediction:', error.message);
+    throw new Error('AI service unavailable for price prediction.');
+  }
+}
+
+// Call AI service for ROI prediction
+async function predictRenovationROI(data) {
+  try {
+    const response = await axios.post('http://localhost:8000/predict-roi', data);
+    return response.data;
+  } catch (error) {
+    console.error('Error calling AI service for ROI prediction:', error.message);
+    throw new Error('AI service unavailable for ROI prediction.');
+  }
+}
+
+// Call AI service for renovation recommendations
+async function getRenovationRecommendations(features) {
+  try {
+    const response = await axios.post('http://localhost:8000/recommend-renovations', { property_features: features });
+    return response.data;
+  } catch (error) {
+    console.error('Error calling AI service for renovation recommendations:', error.message);
+    throw new Error('AI service unavailable for renovation recommendations.');
+  }
+}
+
 module.exports = {
   createChecklistItem,
   getChecklistItems,
   updateChecklistItem,
-  deleteChecklistItem
+  deleteChecklistItem,
+  predictPropertyPrice,
+  predictRenovationROI,
+  getRenovationRecommendations
 };

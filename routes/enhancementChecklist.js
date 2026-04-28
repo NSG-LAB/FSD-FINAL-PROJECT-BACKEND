@@ -150,4 +150,34 @@ router.delete('/:id', authenticateToken, async (req, res) => {
   }
 });
 
+// Predict property price
+router.post('/predict-price', authenticateToken, async (req, res) => {
+  try {
+    const prediction = await enhancementChecklistService.predictPropertyPrice(req.body);
+    res.json(prediction);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Predict renovation ROI
+router.post('/predict-roi', authenticateToken, async (req, res) => {
+  try {
+    const prediction = await enhancementChecklistService.predictRenovationROI(req.body);
+    res.json(prediction);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Get renovation recommendations
+router.post('/recommend-renovations', authenticateToken, async (req, res) => {
+  try {
+    const recommendations = await enhancementChecklistService.getRenovationRecommendations(req.body);
+    res.json(recommendations);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
 module.exports = router;
