@@ -61,33 +61,77 @@ const authRules = {
 // Property validation rules
 const propertyRules = {
   create: [
-    body().custom((_, { req }) => {
-      if (req.body.builtUpArea === undefined && req.body.builUpArea !== undefined) {
-        req.body.builtUpArea = req.body.builUpArea;
-      }
-      if (req.body.builtUpArea === undefined) {
-        throw new Error('Built-up area required');
-      }
-      return true;
-    }),
     body('title')
       .trim()
-      .notEmpty().withMessage('Title required')
-      .isLength({ max: 200 }).withMessage('Title max 200 chars'),
+      .notEmpty().withMessage('Title is required.')
+      .isLength({ min: 10, max: 100 }).withMessage('Title must be between 10 and 100 characters.'),
+    body('description')
+      .trim()
+      .notEmpty().withMessage('Description is required.')
+      .isLength({ min: 20, max: 500 }).withMessage('Description must be between 20 and 500 characters.'),
     body('propertyType')
-      .isIn(['apartment', 'house', 'villa', 'townhouse', 'studio']).withMessage('Invalid property type'),
+      .isIn(['apartment', 'house', 'villa', 'townhouse', 'studio']).withMessage('Invalid property type.'),
     body('age')
-      .isInt({ min: 0, max: 150 }).withMessage('Age must be 0-150'),
+      .isInt({ min: 0, max: 150 }).withMessage('Property age must be between 0 and 150 years.'),
     body('builtUpArea')
-      .isInt({ min: 100, max: 100000 }).withMessage('Area must be 100-100000 sqft'),
+      .isInt({ min: 100, max: 100000 }).withMessage('Built-up area must be between 100 and 100,000 sqft.'),
     body('bedrooms')
-      .isInt({ min: 0, max: 20 }).withMessage('Bedrooms must be 0-20'),
+      .isInt({ min: 0, max: 20 }).withMessage('Number of bedrooms must be between 0 and 20.'),
     body('bathrooms')
-      .isInt({ min: 0, max: 20 }).withMessage('Bathrooms must be 0-20'),
+      .isInt({ min: 0, max: 20 }).withMessage('Number of bathrooms must be between 0 and 20.'),
     body('condition')
-      .isIn(['excellent', 'good', 'average', 'needs-work']).withMessage('Invalid condition'),
+      .isIn(['excellent', 'good', 'average', 'needs-work']).withMessage('Invalid property condition.'),
     body('currentValue')
-      .isInt({ min: 0 }).withMessage('Value must be positive')
+      .isInt({ min: 0 }).withMessage('Current value must be a positive number.'),
+    body('suggestions')
+      .optional()
+      .isArray().withMessage('Suggestions must be an array.')
+      .custom(value => {
+        if (!value.every(item => typeof item === 'string' && item.length >= 10 && item.length <= 200)) {
+          throw new Error('Each suggestion must be a string between 10 and 200 characters.');
+        }
+        return true;
+      })
+  ],
+  update: [
+    body('title')
+      .optional()
+      .trim()
+      .isLength({ min: 10, max: 100 }).withMessage('Title must be between 10 and 100 characters.'),
+    body('description')
+      .optional()
+      .trim()
+      .isLength({ min: 20, max: 500 }).withMessage('Description must be between 20 and 500 characters.'),
+    body('propertyType')
+      .optional()
+      .isIn(['apartment', 'house', 'villa', 'townhouse', 'studio']).withMessage('Invalid property type.'),
+    body('age')
+      .optional()
+      .isInt({ min: 0, max: 150 }).withMessage('Property age must be between 0 and 150 years.'),
+    body('builtUpArea')
+      .optional()
+      .isInt({ min: 100, max: 100000 }).withMessage('Built-up area must be between 100 and 100,000 sqft.'),
+    body('bedrooms')
+      .optional()
+      .isInt({ min: 0, max: 20 }).withMessage('Number of bedrooms must be between 0 and 20.'),
+    body('bathrooms')
+      .optional()
+      .isInt({ min: 0, max: 20 }).withMessage('Number of bathrooms must be between 0 and 20.'),
+    body('condition')
+      .optional()
+      .isIn(['excellent', 'good', 'average', 'needs-work']).withMessage('Invalid property condition.'),
+    body('currentValue')
+      .optional()
+      .isInt({ min: 0 }).withMessage('Current value must be a positive number.'),
+    body('suggestions')
+      .optional()
+      .isArray().withMessage('Suggestions must be an array.')
+      .custom(value => {
+        if (!value.every(item => typeof item === 'string' && item.length >= 10 && item.length <= 200)) {
+          throw new Error('Each suggestion must be a string between 10 and 200 characters.');
+        }
+        return true;
+      })
   ]
 };
 
